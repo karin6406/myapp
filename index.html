@@ -3,40 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>個人記帳與預算管理系統 Pro Max V7</title>
+    <title>個人記帳與預算管理系統 Pro Max V8</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 text-gray-800 min-h-screen p-4 md:p-8">
 
     <div class="max-w-7xl mx-auto space-y-6">
         
-        <!-- Header -->
         <header class="flex flex-col md:flex-row justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-200 gap-4">
             <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
                 <div class="flex gap-2 w-full sm:w-auto">
                     <button onclick="openModal('settingsModal')" class="bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition flex items-center justify-center gap-2 shadow flex-1 sm:flex-none">
-                        ⚙️ 1. 預算及種類設定
+                        ⚙️ 預算、種類及捷徑設定
                     </button>
                     <button onclick="openModal('assetsModal')" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-indigo-700 transition flex items-center justify-center gap-2 shadow flex-1 sm:flex-none">
-                        🏦 2. 資產及戶口設定
+                        🏦 資產及戶口設定
                     </button>
                 </div>
             </div>
             <div class="text-center md:text-right">
-                <h1 class="text-xl font-bold text-indigo-800">📊 記帳與預算系統 V7</h1>
+                <h1 class="text-xl font-bold text-indigo-800">📊 記帳與預算系統 V8</h1>
             </div>
         </header>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
-            <!-- 第3部分：每日預算控制及記帳 -->
             <div class="lg:col-span-1 space-y-6">
+                
+                <div class="bg-white p-5 rounded-xl shadow-md border border-yellow-200 bg-gradient-to-br from-yellow-50 to-white">
+                    <h2 class="text-base font-bold mb-3 text-yellow-700">⚡ 快速記帳</h2>
+                    <div id="shortcutsContainer" class="flex flex-wrap gap-2">
+                        </div>
+                </div>
+
                 <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
-                    <h2 class="text-lg font-bold mb-4 text-gray-700">✍️ 第3部分：每日記帳</h2>
+                    <h2 class="text-lg font-bold mb-4 text-gray-700">✍️ 每日記帳</h2>
                     
                     <div class="bg-indigo-50 p-4 rounded-lg mb-4 space-y-3">
                         <div class="flex justify-between items-center">
-                            <span class="text-sm font-bold text-indigo-900">3.1 預算項目：</span>
+                            <span class="text-sm font-bold text-indigo-900">預算項目：</span>
                             <select id="dayTypeSelect" class="p-1 border rounded bg-white text-sm" onchange="updateDailyBudgetView()">
                                 <option value="weekday">平日預算</option>
                                 <option value="holiday">假日預算</option>
@@ -87,37 +92,36 @@
                         </div>
                         <button type="submit" class="w-full bg-indigo-600 text-white p-2.5 rounded-lg font-bold hover:bg-indigo-700 transition shadow">新增紀錄</button>
                     </form>
+
+                    <div class="mt-4 border-t pt-4">
+                        <button onclick="toggleDailyDetails()" id="toggleDetailBtn" class="w-full flex justify-between items-center text-sm font-bold text-gray-600 bg-gray-50 p-2 rounded hover:bg-gray-100">
+                            <span>🔍 當日消費明細 <span id="detailDateText" class="font-normal text-gray-500 text-xs"></span></span>
+                            <span>🔽</span>
+                        </button>
+                        
+                        <div id="dailyDetailSection" class="hidden mt-3 overflow-x-auto">
+                            <table class="w-full text-left border-collapse text-xs">
+                                <thead>
+                                    <tr class="bg-gray-100 text-gray-600">
+                                        <th class="p-2">類型</th>
+                                        <th class="p-2">種類</th>
+                                        <th class="p-2">用途</th>
+                                        <th class="p-2 text-right">金額</th>
+                                        <th class="p-2 text-center">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dailyDetailTableBody" class="text-gray-700"></tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <div class="lg:col-span-2 space-y-6">
-                <!-- 3.3 當日消費明細 -->
-                <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
-                    <h2 class="text-lg font-bold mb-3 text-gray-700 flex justify-between items-center">
-                        <span>🔍 3.3 當日消費明細</span>
-                        <span id="detailDateText" class="text-sm font-normal text-gray-500"></span>
-                    </h2>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse text-sm">
-                            <thead>
-                                <tr class="bg-gray-50 border-b border-gray-200 text-gray-600 font-semibold">
-                                    <th class="p-2.5">類型</th>
-                                    <th class="p-2.5">種類</th>
-                                    <th class="p-2.5">用途</th>
-                                    <th class="p-2.5">戶口</th>
-                                    <th class="p-2.5 text-right">金額</th>
-                                    <th class="p-2.5 text-center">操作</th>
-                                </tr>
-                            </thead>
-                            <tbody id="dailyDetailTableBody" class="text-gray-700"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- 第4部分：支出月歷 -->
+                
                 <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-                        <h2 class="text-lg font-bold text-gray-700">📅 第4部分：支出月歷</h2>
+                        <h2 class="text-lg font-bold text-gray-700">📅 支出月歷</h2>
                         <div class="flex gap-2">
                             <select id="calYearSelect" class="p-1.5 border rounded bg-white text-sm focus:ring-1 focus:ring-indigo-400" onchange="renderCalendar()"></select>
                             <select id="calMonthSelect" class="p-1.5 border rounded bg-white text-sm focus:ring-1 focus:ring-indigo-400" onchange="renderCalendar()"></select>
@@ -152,41 +156,39 @@
                     </div>
                 </div>
 
-                <!-- 第5部分：本月種類消費統計 (棒形圖) -->
                 <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
-                    <h2 class="text-lg font-bold mb-4 text-gray-700">📈 第5部分：本月分類消費統計 (棒形圖)</h2>
+                    <h2 class="text-lg font-bold mb-4 text-gray-700">📈 本月分類消費統計 (棒形圖)</h2>
                     <div id="categoryChartContainer" class="space-y-4">
-                        <!-- 棒形圖會用 JavaScript 自動生成喺度 -->
-                    </div>
+                        </div>
                 </div>
 
             </div>
         </div>
     </div>
 
-    <!-- 第1部分：預算及種類設定 Modal -->
     <div id="settingsModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden p-4">
-        <div class="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto flex flex-col">
+        <div class="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto flex flex-col">
             <div class="p-4 border-b flex justify-between items-center bg-gray-50 sticky top-0 z-10">
-                <h3 class="text-xl font-bold text-gray-800">⚙️ 第1部分：預算及種類設定</h3>
+                <h3 class="text-xl font-bold text-gray-800">⚙️ 預算、種類及捷徑設定</h3>
                 <button onclick="closeModal('settingsModal')" class="text-gray-400 hover:text-gray-600 font-bold text-2xl px-2">&times;</button>
             </div>
             
-            <div class="p-6 space-y-6 overflow-y-auto bg-white">
+            <div class="p-6 space-y-8 overflow-y-auto bg-white">
+                
                 <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-bold text-gray-700 mb-1">1.1 假日預算數值</label>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">假日預算數值</label>
                         <input type="number" id="holidayBudgetInput" class="w-full p-2 border rounded" onchange="saveBasicSettings()">
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-gray-700 mb-1">1.2 平日預算數值</label>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">平日預算數值</label>
                         <input type="number" id="weekdayBudgetInput" class="w-full p-2 border rounded" onchange="saveBasicSettings()">
                     </div>
                 </div>
 
                 <div class="border border-gray-200 p-4 rounded-xl space-y-3">
                     <div class="flex justify-between items-center border-b pb-2">
-                        <h4 class="text-base font-bold text-indigo-700">🏷️ 1.3 & 1.4 設定消費種類及專屬預算</h4>
+                        <h4 class="text-base font-bold text-indigo-700">🏷️ 設定消費種類及專屬預算</h4>
                         <button onclick="addNewCategory()" class="bg-indigo-100 text-indigo-700 px-2.5 py-1 rounded text-xs font-bold hover:bg-indigo-200 transition">+ 新增種類</button>
                     </div>
                     <div class="overflow-x-auto">
@@ -202,6 +204,31 @@
                         </table>
                     </div>
                 </div>
+
+                <div class="border border-yellow-200 p-4 rounded-xl space-y-3 bg-yellow-50/30">
+                    <div class="flex justify-between items-center border-b pb-2 border-yellow-200">
+                        <h4 class="text-base font-bold text-yellow-700">⚡ 快速記帳設定</h4>
+                        <button onclick="addNewShortcut()" class="bg-yellow-100 text-yellow-700 px-2.5 py-1 rounded text-xs font-bold hover:bg-yellow-200 transition">+ 新增捷徑</button>
+                    </div>
+                    <p class="text-xs text-gray-500 mb-2">喺度預先設定好常用嘅消費，出面主畫面就會有「一鍵記帳」按鈕。</p>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs min-w-[700px]">
+                            <thead>
+                                <tr class="text-yellow-800 font-semibold border-b border-yellow-200">
+                                    <th class="p-1 w-24">捷徑名稱</th>
+                                    <th class="p-1 w-16">類型</th>
+                                    <th class="p-1 w-20">金額</th>
+                                    <th class="p-1 w-24">種類</th>
+                                    <th class="p-1">預設用途</th>
+                                    <th class="p-1 w-32">付款方式</th>
+                                    <th class="p-1 text-center w-12">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="shortcutsTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
             </div>
 
             <div class="p-4 border-t bg-gray-50 flex justify-end">
@@ -210,30 +237,28 @@
         </div>
     </div>
 
-    <!-- 第2部分：資產及戶口設定 Modal -->
     <div id="assetsModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden p-4">
         <div class="bg-white rounded-xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto flex flex-col">
             <div class="p-4 border-b flex justify-between items-center bg-indigo-50 sticky top-0 z-10">
-                <h3 class="text-xl font-bold text-indigo-800">🏦 第2部分：資產及戶口設定</h3>
+                <h3 class="text-xl font-bold text-indigo-800">🏦 資產及戶口設定</h3>
                 <button onclick="closeModal('assetsModal')" class="text-gray-400 hover:text-gray-600 font-bold text-2xl px-2">&times;</button>
             </div>
             
             <div class="p-6 space-y-8 overflow-y-auto bg-white">
                 
-                <!-- 2.1 資金戶口 (正資產) -->
                 <div class="border border-green-200 p-4 rounded-xl space-y-3 bg-green-50/30">
                     <div class="flex justify-between items-center border-b pb-2 border-green-200">
-                        <h4 class="text-base font-bold text-green-700">💵 2.1 資金戶口 (正資產)</h4>
+                        <h4 class="text-base font-bold text-green-700">💵 資金戶口 (正資產)</h4>
                         <button onclick="addNewAssetAccount()" class="bg-green-100 text-green-700 px-2.5 py-1 rounded text-xs font-bold hover:bg-green-200">+ 新增資金戶口</button>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs min-w-[500px]">
                             <thead>
                                 <tr class="text-green-800 font-semibold border-b border-green-200">
-                                    <th class="p-1">1) 戶口名稱</th>
-                                    <th class="p-1 w-20">2) 貨幣</th>
-                                    <th class="p-1 w-24">3) 數值 (綠)</th>
-                                    <th class="p-1">4) 備注</th>
+                                    <th class="p-1">戶口名稱</th>
+                                    <th class="p-1 w-20">貨幣</th>
+                                    <th class="p-1 w-24">數值 (綠)</th>
+                                    <th class="p-1">備注</th>
                                     <th class="p-1 text-center w-12">操作</th>
                                 </tr>
                             </thead>
@@ -242,22 +267,21 @@
                     </div>
                 </div>
 
-                <!-- 2.2 預付戶口 (信用卡) -->
                 <div class="border border-red-200 p-4 rounded-xl space-y-3 bg-red-50/30">
                     <div class="flex justify-between items-center border-b pb-2 border-red-200">
-                        <h4 class="text-base font-bold text-red-700">💳 2.2 預付戶口 (例如: 信用卡)</h4>
+                        <h4 class="text-base font-bold text-red-700">💳 預付戶口 (例如: 信用卡)</h4>
                         <button onclick="addNewCreditAccount()" class="bg-red-100 text-red-700 px-2.5 py-1 rounded text-xs font-bold hover:bg-red-200">+ 新增預付戶口</button>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs min-w-[700px]">
                             <thead>
                                 <tr class="text-red-800 font-semibold border-b border-red-200">
-                                    <th class="p-1">1) 戶口名稱</th>
-                                    <th class="p-1 w-16">2) 貨幣</th>
-                                    <th class="p-1 w-24">3) 數值 (紅)</th>
-                                    <th class="p-1 w-24">4) 到期日(日曆提示)</th>
-                                    <th class="p-1 w-24">5) 結算日</th>
-                                    <th class="p-1">6) 備注</th>
+                                    <th class="p-1">戶口名稱</th>
+                                    <th class="p-1 w-16">貨幣</th>
+                                    <th class="p-1 w-24">數值 (紅)</th>
+                                    <th class="p-1 w-24">到期日(日曆提示)</th>
+                                    <th class="p-1 w-24">結算日</th>
+                                    <th class="p-1">備注</th>
                                     <th class="p-1 text-center w-12">操作</th>
                                 </tr>
                             </thead>
@@ -279,7 +303,7 @@
         const CURRENCIES = ["HKD", "TWD", "KRW", "JPY", "GBP", "USD"];
         const DAYS_IN_MONTH = Array.from({length: 31}, (_, i) => i + 1);
 
-        // 資料庫初始化 (繼續使用 v6 資料庫，不影響你之前入嘅資料)
+        // 資料庫初始化
         let transactions = JSON.parse(localStorage.getItem('v6_txs')) || [];
         let dateBudgetTypes = JSON.parse(localStorage.getItem('v6_date_types')) || {}; 
         
@@ -291,13 +315,16 @@
                 { name: "餐飲", budget: 3000 }
             ],
             assets: [
-                { id: "ast_1", name: "現金", currency: "HKD", value: 10000.00, note: "" },
-                { id: "ast_2", name: "八達通", currency: "HKD", value: 2345.78, note: "" }
+                { id: "ast_1", name: "現金", currency: "HKD", value: 10000.00, note: "" }
             ],
-            credits: [
-                { id: "crd_1", name: "信用卡A", currency: "HKD", value: 10000.00, payDay: 11, stateDay: 15, note: "" }
-            ]
+            credits: [],
+            shortcuts: [] // V8 新增：捷徑資料
         };
+
+        // 舊用戶升級過渡，確保有 shortcuts 陣列
+        if (!settings.shortcuts) {
+            settings.shortcuts = [];
+        }
 
         window.onload = function() {
             document.getElementById('holidayBudgetInput').value = settings.holidayBudget;
@@ -367,10 +394,41 @@
             settings.holidayBudget = parseFloat(document.getElementById('holidayBudgetInput').value) || 0;
             settings.weekdayBudget = parseFloat(document.getElementById('weekdayBudgetInput').value) || 0;
             saveSettings();
+            updateAllViews();
         }
 
         function saveSettings() {
             localStorage.setItem('v6_settings', JSON.stringify(settings));
+        }
+
+        // 動態生成下拉選單 (供捷徑設定使用)
+        function getCategoryOptions(selectedCat) {
+            let html = '';
+            settings.categories.forEach(cat => {
+                let isSel = cat.name === selectedCat ? 'selected' : '';
+                html += `<option value="${cat.name}" ${isSel}>${cat.name}</option>`;
+            });
+            return html;
+        }
+        function getMethodOptions(selectedMethod) {
+            let html = '';
+            if(settings.assets.length > 0) {
+                html += `<optgroup label="🟢 資金戶口">`;
+                settings.assets.forEach(act => {
+                    let v = `ast|${act.id}`;
+                    html += `<option value="${v}" ${v===selectedMethod?'selected':''}>${act.name}</option>`;
+                });
+                html += `</optgroup>`;
+            }
+            if(settings.credits.length > 0) {
+                html += `<optgroup label="🔴 預付戶口">`;
+                settings.credits.forEach(act => {
+                    let v = `crd|${act.id}`;
+                    html += `<option value="${v}" ${v===selectedMethod?'selected':''}>${act.name}</option>`;
+                });
+                html += `</optgroup>`;
+            }
+            return html;
         }
 
         function renderSettingsDOM() {
@@ -382,6 +440,36 @@
                         <td class="p-2"><input type="text" value="${cat.name}" class="border p-1 rounded w-full" onchange="updateSet('categories', ${idx}, 'name', this.value)"></td>
                         <td class="p-2"><input type="number" step="0.01" value="${cat.budget}" class="border p-1 rounded w-full" onchange="updateSet('categories', ${idx}, 'budget', this.value)"></td>
                         <td class="p-2 text-center"><button onclick="deleteItem('categories', ${idx})" class="text-red-500 font-bold">🗑️</button></td>
+                    </tr>`;
+            });
+
+            // 渲染捷徑設定表格
+            const scBody = document.getElementById('shortcutsTableBody');
+            scBody.innerHTML = '';
+            settings.shortcuts.forEach((sc, idx) => {
+                scBody.innerHTML += `
+                    <tr class="border-b border-yellow-100 hover:bg-yellow-50">
+                        <td class="p-1"><input type="text" value="${sc.name}" placeholder="例: 搭巴士" class="border p-1 rounded w-full text-xs" onchange="updateSet('shortcuts', ${idx}, 'name', this.value)"></td>
+                        <td class="p-1">
+                            <select class="border p-1 rounded w-full text-xs" onchange="updateSet('shortcuts', ${idx}, 'type', this.value)">
+                                <option value="expense" ${sc.type==='expense'?'selected':''}>支出</option>
+                                <option value="income" ${sc.type==='income'?'selected':''}>收入</option>
+                            </select>
+                        </td>
+                        <td class="p-1"><input type="number" step="0.01" value="${sc.amount}" class="border p-1 rounded w-full text-xs" onchange="updateSet('shortcuts', ${idx}, 'amount', this.value)"></td>
+                        <td class="p-1">
+                            <select class="border p-1 rounded w-full text-xs" onchange="updateSet('shortcuts', ${idx}, 'category', this.value)">
+                                ${getCategoryOptions(sc.category)}
+                            </select>
+                        </td>
+                        <td class="p-1"><input type="text" value="${sc.desc}" placeholder="用途" class="border p-1 rounded w-full text-xs" onchange="updateSet('shortcuts', ${idx}, 'desc', this.value)"></td>
+                        <td class="p-1">
+                            <select class="border p-1 rounded w-full text-xs" onchange="updateSet('shortcuts', ${idx}, 'methodRaw', this.value)">
+                                <option value="">請選擇</option>
+                                ${getMethodOptions(sc.methodRaw)}
+                            </select>
+                        </td>
+                        <td class="p-1 text-center"><button onclick="deleteItem('shortcuts', ${idx})" class="text-red-500 font-bold">🗑️</button></td>
                     </tr>`;
             });
 
@@ -426,12 +514,17 @@
         }
 
         function updateSet(arrName, idx, key, val) {
-            if(['value', 'budget'].includes(key)) {
+            if(['value', 'budget', 'amount'].includes(key)) {
                 settings[arrName][idx][key] = parseFloat(val) || 0;
             } else {
                 settings[arrName][idx][key] = val;
             }
             saveSettings();
+            
+            // 如果改咗種類或者戶口，需要重新渲染捷徑個表以更新下拉選單
+            if(arrName === 'categories' || arrName === 'assets' || arrName === 'credits') {
+                renderSettingsDOM();
+            }
             updateAllViews();
         }
         function deleteItem(arrName, idx) {
@@ -448,6 +541,16 @@
             settings.categories.push({ name: "新種類", budget: 0 });
             saveSettings(); renderSettingsDOM(); syncFormDropdowns();
         }
+        function addNewShortcut() {
+            // 預設揀第一個種類同戶口
+            let defCat = settings.categories.length > 0 ? settings.categories[0].name : "";
+            let defMethod = settings.assets.length > 0 ? `ast|${settings.assets[0].id}` : "";
+            
+            settings.shortcuts.push({ 
+                name: "新捷徑", type: "expense", amount: 10, category: defCat, desc: "", methodRaw: defMethod 
+            });
+            saveSettings(); renderSettingsDOM(); updateAllViews();
+        }
         function addNewAssetAccount() {
             settings.assets.push({ id: "ast_" + Date.now(), name: "新資金戶口", currency: "HKD", value: 0, note: "" });
             saveSettings(); renderSettingsDOM(); syncFormDropdowns();
@@ -459,7 +562,7 @@
 
         function syncFormDropdowns() {
             const catSelect = document.getElementById('txCategory');
-            const currentCat = catSelect.value; // 記住當前選擇
+            const currentCat = catSelect.value; 
             catSelect.innerHTML = '';
             settings.categories.forEach(cat => {
                 let isSelected = (cat.name === currentCat) ? 'selected' : '';
@@ -506,6 +609,70 @@
             updateAllViews();
         }
 
+        let detailsVisible = false;
+        function toggleDailyDetails() {
+            detailsVisible = !detailsVisible;
+            const detailSec = document.getElementById('dailyDetailSection');
+            const btnSpan = document.getElementById('toggleDetailBtn').querySelectorAll('span')[1];
+            if(detailsVisible) {
+                detailSec.classList.remove('hidden');
+                btnSpan.innerText = "🔼";
+            } else {
+                detailSec.classList.add('hidden');
+                btnSpan.innerText = "🔽";
+            }
+        }
+
+        // 新增：渲染主畫面捷徑按鈕
+        function renderShortcuts() {
+            const container = document.getElementById('shortcutsContainer');
+            if (settings.shortcuts.length === 0) {
+                container.innerHTML = `<span class="text-xs text-gray-400 py-1">未設定捷徑，請入設定新增。</span>`;
+                return;
+            }
+            container.innerHTML = '';
+            settings.shortcuts.forEach((sc, idx) => {
+                container.innerHTML += `
+                    <button onclick="executeShortcut(${idx})" class="bg-white border border-yellow-300 shadow-sm text-gray-700 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-yellow-50 transition active:scale-95">
+                        ${sc.name} <span class="text-xs font-normal text-gray-500">($${sc.amount})</span>
+                    </button>
+                `;
+            });
+        }
+
+        // 新增：執行捷徑記帳
+        function executeShortcut(idx) {
+            const sc = settings.shortcuts[idx];
+            const date = document.getElementById('txDate').value || getTodayDateString();
+            
+            if(!sc.methodRaw) return alert('此捷徑未設定付款方式，請去設定補全！');
+            
+            const [accType, accId] = sc.methodRaw.split('|');
+            let accountList = accType === 'ast' ? settings.assets : settings.credits;
+            let account = accountList.find(a => a.id === accId);
+
+            if(!account) return alert('捷徑綁定嘅戶口已失效，請去設定重新選擇！');
+            if(sc.amount <= 0) return alert('捷徑金額必須大於 0！');
+
+            if (sc.type === 'income') { account.value += sc.amount; } 
+            else { account.value -= sc.amount; }
+            saveSettings();
+
+            transactions.push({
+                id: 'tx_' + Date.now(),
+                date, type: sc.type, amount: sc.amount, category: sc.category, desc: sc.desc || '(捷徑)',
+                methodRaw: sc.methodRaw, methodName: account.name
+            });
+            localStorage.setItem('v6_txs', JSON.stringify(transactions));
+            
+            // 震動回饋 (手機版)
+            if(navigator.vibrate) navigator.vibrate(50);
+            
+            // 彈出小提示
+            alert(`✅ 已快速記帳：${sc.name} ($${sc.amount})`);
+            updateAllViews();
+        }
+
         function updateAllViews() {
             const selectedDate = document.getElementById('txDate').value;
             if(!selectedDate) return;
@@ -531,24 +698,24 @@
             const tbody = document.getElementById('dailyDetailTableBody');
             tbody.innerHTML = '';
             if(dayTxs.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="text-center p-4 text-gray-400 text-xs">當日無收支紀錄</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center p-4 text-gray-400 text-xs">當日無收支紀錄</td></tr>';
             } else {
                 dayTxs.forEach(t => {
                     const isInc = t.type === 'income';
                     tbody.innerHTML += `
                         <tr class="border-b border-gray-100 hover:bg-gray-50">
-                            <td class="p-2.5 font-bold ${isInc?'text-green-600':'text-red-600'}">${isInc?'收款':'付款'}</td>
-                            <td class="p-2.5">${t.category}</td>
-                            <td class="p-2.5 text-gray-500">${t.desc||'-'}</td>
-                            <td class="p-2.5 text-gray-500">${t.methodName}</td>
-                            <td class="p-2.5 text-right font-semibold ${isInc?'text-green-600':'text-red-600'}">${isInc?'':'-'}${t.amount.toFixed(2)}</td>
-                            <td class="p-2.5 text-center"><button onclick="deleteTransaction('${t.id}')" class="text-xs text-red-500 hover:underline">刪除</button></td>
+                            <td class="p-2 font-bold ${isInc?'text-green-600':'text-red-600'}">${isInc?'收款':'付款'}</td>
+                            <td class="p-2">${t.category}</td>
+                            <td class="p-2 text-gray-500">${t.desc||'-'} <br><span class="text-[10px] text-gray-400">[${t.methodName}]</span></td>
+                            <td class="p-2 text-right font-semibold ${isInc?'text-green-600':'text-red-600'}">${isInc?'':'-'}${t.amount.toFixed(2)}</td>
+                            <td class="p-2 text-center"><button onclick="deleteTransaction('${t.id}')" class="text-xs text-red-500 hover:underline">刪除</button></td>
                         </tr>`;
                 });
             }
 
             renderCalendar();
-            renderCategoryChart(); // 更新棒形圖
+            renderCategoryChart();
+            renderShortcuts();
             syncFormDropdowns();
         }
 
@@ -677,29 +844,25 @@
             }
         }
 
-        // 新增功能：繪製分類消費棒形圖
         function renderCategoryChart() {
             const year = document.getElementById('calYearSelect').value;
-            const month = parseInt(document.getElementById('calMonthSelect').value) + 1; // 轉為 1-12
+            const month = parseInt(document.getElementById('calMonthSelect').value) + 1;
             const mPrefix = year + '-' + String(month).padStart(2, '0');
 
             let categoryTotals = {};
-            // 先初始化所有設定中嘅分類
             settings.categories.forEach(c => categoryTotals[c.name] = 0);
 
-            // 統計該月份內每種分類嘅總支出
             transactions.filter(t => t.date.startsWith(mPrefix) && t.type === 'expense').forEach(t => {
                 if (categoryTotals[t.category] !== undefined) {
                     categoryTotals[t.category] += t.amount;
                 } else {
-                    categoryTotals[t.category] = t.amount; // 即使係刪除咗嘅分類，如果有紀錄都會顯示
+                    categoryTotals[t.category] = t.amount;
                 }
             });
 
             const chartContainer = document.getElementById('categoryChartContainer');
             chartContainer.innerHTML = '';
 
-            // 找出最高消費金額，用嚟設定棒形圖比例 (Max 100%)
             let maxAmount = 0;
             for (let cat in categoryTotals) {
                 if (categoryTotals[cat] > maxAmount) maxAmount = categoryTotals[cat];
@@ -710,15 +873,11 @@
                 return;
             }
 
-            // 產生棒形圖 HTML
             for (let cat in categoryTotals) {
                 let amount = categoryTotals[cat];
-                // 如果該分類係 0，而且已經從設定中刪除，就唔顯示
                 if (amount === 0 && !settings.categories.find(c => c.name === cat)) continue;
 
                 let percent = maxAmount > 0 ? (amount / maxAmount) * 100 : 0;
-                
-                // 檢查有無超支 (對比預算)
                 let budgetObj = settings.categories.find(c => c.name === cat);
                 let budgetLimit = budgetObj ? budgetObj.budget : 0;
                 let isOverBudget = budgetLimit > 0 && amount > budgetLimit;
