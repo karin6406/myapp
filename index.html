@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>個人記帳與預算管理系統 Pro Max V9</title>
+    <title>個人記帳與預算管理系統 Pro Max V10</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 text-gray-800 min-h-screen p-4 md:p-8">
 
     <div class="max-w-7xl mx-auto space-y-6">
         
+        <!-- Header -->
         <header class="flex flex-col md:flex-row justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-200 gap-4">
             <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
                 <div class="flex gap-2 w-full sm:w-auto">
@@ -22,20 +23,24 @@
                 </div>
             </div>
             <div class="text-center md:text-right">
-                <h1 class="text-xl font-bold text-indigo-800">📊 記帳與預算系統 V9</h1>
+                <h1 class="text-xl font-bold text-indigo-800">📊 記帳與預算系統 V10</h1>
             </div>
         </header>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
+            <!-- 左側欄：捷徑、記帳及明細 -->
             <div class="lg:col-span-1 space-y-6">
                 
+                <!-- ⚡ 快速記帳捷徑區 -->
                 <div class="bg-white p-5 rounded-xl shadow-md border border-yellow-200 bg-gradient-to-br from-yellow-50 to-white">
                     <h2 class="text-base font-bold mb-3 text-yellow-700">⚡ 快速記帳</h2>
                     <div id="shortcutsContainer" class="flex flex-wrap gap-2">
-                        </div>
+                        <!-- 捷徑按鈕會喺度生成 -->
+                    </div>
                 </div>
 
+                <!-- 每日記帳 -->
                 <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
                     <h2 class="text-lg font-bold mb-4 text-gray-700">✍️ 每日記帳</h2>
                     
@@ -49,7 +54,7 @@
                         </div>
                         <div>
                             <div class="flex justify-between text-xs text-indigo-700 mb-1">
-                                <span>今日支出進度</span>
+                                <span>今日支出進度 (只限計入預算項目)</span>
                                 <span id="budgetProgressText">0 / 0 (0%)</span>
                             </div>
                             <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
@@ -77,11 +82,21 @@
                                 </label>
                             </div>
                         </div>
+                        
+                        <!-- 是否計入預算 (只在支出顯示) -->
+                        <div id="includeBudgetContainer" class="bg-gray-50 p-2 rounded border border-gray-200">
+                            <label class="flex items-center gap-2 cursor-pointer text-gray-700 font-medium">
+                                <input type="checkbox" id="txIncludeBudget" checked class="w-4 h-4 text-indigo-600 focus:ring-indigo-500 rounded">
+                                將此筆支出計入每日預算
+                            </label>
+                        </div>
+
                         <div>
                             <label class="block font-medium mb-1">金額</label>
                             <input type="number" id="txAmount" step="0.01" class="w-full p-2 border rounded focus:ring-2 focus:ring-indigo-400 outline-none" placeholder="0.00" required>
                         </div>
                         
+                        <!-- 種類欄 (轉帳時會隱藏) -->
                         <div id="categorySelectContainer">
                             <label class="block font-medium mb-1">種類</label>
                             <select id="txCategory" class="w-full p-2 border rounded bg-white focus:ring-2 focus:ring-indigo-400 outline-none"></select>
@@ -92,11 +107,13 @@
                             <input type="text" id="txDesc" class="w-full p-2 border rounded focus:ring-2 focus:ring-indigo-400 outline-none" placeholder="輸入具體用途或轉帳備註">
                         </div>
                         
+                        <!-- 來源戶口 -->
                         <div>
                             <label id="fromAccountLabel" class="block font-medium mb-1">付款方式 (自動連動)</label>
                             <select id="txMethod" class="w-full p-2 border rounded bg-white focus:ring-2 focus:ring-indigo-400 outline-none"></select>
                         </div>
 
+                        <!-- 目標戶口 (只有轉帳時會出現) -->
                         <div id="toAccountSelectContainer" class="hidden">
                             <label class="block font-medium mb-1 text-indigo-600 font-semibold">🎯 目標戶口 (存入/找數)</label>
                             <select id="txToMethod" class="w-full p-2 border rounded bg-white focus:ring-2 focus:ring-indigo-400 outline-none border-indigo-300"></select>
@@ -105,6 +122,7 @@
                         <button type="submit" class="w-full bg-indigo-600 text-white p-2.5 rounded-lg font-bold hover:bg-indigo-700 transition shadow">新增紀錄</button>
                     </form>
 
+                    <!-- 當日消費明細 (收合式) -->
                     <div class="mt-4 border-t pt-4">
                         <button onclick="toggleDailyDetails()" id="toggleDetailBtn" class="w-full flex justify-between items-center text-sm font-bold text-gray-600 bg-gray-50 p-2 rounded hover:bg-gray-100">
                             <span>🔍 當日消費明細 <span id="detailDateText" class="font-normal text-gray-500 text-xs"></span></span>
@@ -129,8 +147,10 @@
                 </div>
             </div>
 
+            <!-- 右側欄：月歷及圖表 -->
             <div class="lg:col-span-2 space-y-6">
                 
+                <!-- 支出月歷 -->
                 <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
                         <h2 class="text-lg font-bold text-gray-700">📅 支出月歷</h2>
@@ -168,16 +188,19 @@
                     </div>
                 </div>
 
+                <!-- 本月分類消費統計 (棒形圖) -->
                 <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
                     <h2 class="text-lg font-bold mb-4 text-gray-700">📈 本月分類消費統計 (棒形圖)</h2>
                     <div id="categoryChartContainer" class="space-y-4">
-                        </div>
+                        <!-- 棒形圖會用 JavaScript 自動生成喺度 -->
+                    </div>
                 </div>
 
             </div>
         </div>
     </div>
 
+    <!-- 預算、種類及捷徑設定 Modal -->
     <div id="settingsModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden p-4">
         <div class="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto flex flex-col">
             <div class="p-4 border-b flex justify-between items-center bg-gray-50 sticky top-0 z-10">
@@ -187,6 +210,7 @@
             
             <div class="p-6 space-y-8 overflow-y-auto bg-white">
                 
+                <!-- 每日預算設定 -->
                 <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-bold text-gray-700 mb-1">假日預算數值</label>
@@ -198,6 +222,7 @@
                     </div>
                 </div>
 
+                <!-- 消費種類設定 -->
                 <div class="border border-gray-200 p-4 rounded-xl space-y-3">
                     <div class="flex justify-between items-center border-b pb-2">
                         <h4 class="text-base font-bold text-indigo-700">🏷️ 設定消費種類及專屬預算</h4>
@@ -217,6 +242,7 @@
                     </div>
                 </div>
 
+                <!-- 快速記帳捷徑設定 -->
                 <div class="border border-yellow-200 p-4 rounded-xl space-y-3 bg-yellow-50/30">
                     <div class="flex justify-between items-center border-b pb-2 border-yellow-200">
                         <h4 class="text-base font-bold text-yellow-700">⚡ 快速記帳設定</h4>
@@ -249,6 +275,7 @@
         </div>
     </div>
 
+    <!-- 資產及戶口設定 Modal -->
     <div id="assetsModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden p-4">
         <div class="bg-white rounded-xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto flex flex-col">
             <div class="p-4 border-b flex justify-between items-center bg-indigo-50 sticky top-0 z-10">
@@ -258,6 +285,7 @@
             
             <div class="p-6 space-y-8 overflow-y-auto bg-white">
                 
+                <!-- 資金戶口 (正資產) -->
                 <div class="border border-green-200 p-4 rounded-xl space-y-3 bg-green-50/30">
                     <div class="flex justify-between items-center border-b pb-2 border-green-200">
                         <h4 class="text-base font-bold text-green-700">💵 資金戶口 (正資產)</h4>
@@ -279,6 +307,7 @@
                     </div>
                 </div>
 
+                <!-- 預付戶口 (信用卡) -->
                 <div class="border border-red-200 p-4 rounded-xl space-y-3 bg-red-50/30">
                     <div class="flex justify-between items-center border-b pb-2 border-red-200">
                         <h4 class="text-base font-bold text-red-700">💳 預付戶口 (例如: 信用卡)</h4>
@@ -363,6 +392,7 @@
             renderSettingsDOM(); 
             syncFormDropdowns();  
             updateAllViews();
+            toggleTxTypeView(); // 初始化收支類型介面
             
             setInterval(function() {
                 const now = new Date();
@@ -404,20 +434,28 @@
             updateAllViews();
         }
 
-        // 動態切換表單檢視 (處理「戶口轉帳」隱藏種類/開啟目標戶口)
+        // 動態切換表單檢視
         function toggleTxTypeView() {
             const type = document.querySelector('input[name="txType"]:checked').value;
             const catContainer = document.getElementById('categorySelectContainer');
             const toAccContainer = document.getElementById('toAccountSelectContainer');
             const fromLabel = document.getElementById('fromAccountLabel');
+            const includeBudgetContainer = document.getElementById('includeBudgetContainer');
 
             if (type === 'transfer') {
                 catContainer.classList.add('hidden');
                 toAccContainer.classList.remove('hidden');
+                includeBudgetContainer.classList.add('hidden');
                 fromLabel.innerText = "🛫 來源戶口 (扣除)";
+            } else if (type === 'income') {
+                catContainer.classList.remove('hidden');
+                toAccContainer.classList.add('hidden');
+                includeBudgetContainer.classList.add('hidden');
+                fromLabel.innerText = "存入方式 (自動連動)";
             } else {
                 catContainer.classList.remove('hidden');
                 toAccContainer.classList.add('hidden');
+                includeBudgetContainer.classList.remove('hidden');
                 fromLabel.innerText = "付款方式 (自動連動)";
             }
         }
@@ -499,12 +537,13 @@
             const astBody = document.getElementById('assetsTableBody');
             astBody.innerHTML = '';
             settings.assets.forEach((ast, idx) => {
+                let curOpts = CURRENCIES.map(c => `<option value="${c}" ${ast.currency===c?'selected':''}>${c}</option>`).join('');
                 astBody.innerHTML += `
                     <tr class="border-b border-green-100 hover:bg-green-50">
-                        <td class="p-1"><input type="text" value="${ast.name}" class="border p-1 rounded w-full" onchange="updateSet('assets', ${idx}, 'name', this.value)"></td>
-                        <td class="p-1">${buildCurrencySelect(ast.currency, `updateSet('assets', ${idx}, 'currency', this.value)`)}</td>
-                        <td class="p-1"><input type="number" step="0.01" value="${ast.value.toFixed(2)}" class="border p-1 rounded w-full text-green-600 font-bold" onchange="updateSet('assets', ${idx}, 'value', this.value)"></td>
-                        <td class="p-1"><input type="text" value="${ast.note}" class="border p-1 rounded w-full" onchange="updateSet('assets', ${idx}, 'note', this.value)"></td>
+                        <td class="p-1"><input type="text" value="${ast.name}" class="border p-1 rounded w-full text-xs" onchange="updateSet('assets', ${idx}, 'name', this.value)"></td>
+                        <td class="p-1"><select class="border p-1 rounded w-full text-xs" onchange="updateSet('assets', ${idx}, 'currency', this.value)">${curOpts}</select></td>
+                        <td class="p-1"><input type="number" step="0.01" value="${ast.value}" class="border p-1 rounded w-full text-xs text-green-700 font-bold" onchange="updateSet('assets', ${idx}, 'value', this.value)"></td>
+                        <td class="p-1"><input type="text" value="${ast.note||''}" class="border p-1 rounded w-full text-xs" onchange="updateSet('assets', ${idx}, 'note', this.value)"></td>
                         <td class="p-1 text-center"><button onclick="deleteItem('assets', ${idx})" class="text-red-500 font-bold">🗑️</button></td>
                     </tr>`;
             });
@@ -512,464 +551,441 @@
             const crdBody = document.getElementById('creditsTableBody');
             crdBody.innerHTML = '';
             settings.credits.forEach((crd, idx) => {
+                let curOpts = CURRENCIES.map(c => `<option value="${c}" ${crd.currency===c?'selected':''}>${c}</option>`).join('');
                 crdBody.innerHTML += `
                     <tr class="border-b border-red-100 hover:bg-red-50">
-                        <td class="p-1"><input type="text" value="${crd.name}" class="border p-1 rounded w-full" onchange="updateSet('credits', ${idx}, 'name', this.value)"></td>
-                        <td class="p-1">${buildCurrencySelect(crd.currency, `updateSet('credits', ${idx}, 'currency', this.value)`)}</td>
-                        <td class="p-1"><input type="number" step="0.01" value="${crd.value.toFixed(2)}" class="border p-1 rounded w-full text-red-600 font-bold" onchange="updateSet('credits', ${idx}, 'value', this.value)"></td>
-                        <td class="p-1">${buildDaySelect(crd.payDay, `updateSet('credits', ${idx}, 'payDay', this.value)`)}</td>
-                        <td class="p-1">${buildDaySelect(crd.stateDay, `updateSet('credits', ${idx}, 'stateDay', this.value)`)}</td>
-                        <td class="p-1"><input type="text" value="${crd.note}" class="border p-1 rounded w-full" onchange="updateSet('credits', ${idx}, 'note', this.value)"></td>
+                        <td class="p-1"><input type="text" value="${crd.name}" class="border p-1 rounded w-full text-xs" onchange="updateSet('credits', ${idx}, 'name', this.value)"></td>
+                        <td class="p-1"><select class="border p-1 rounded w-full text-xs" onchange="updateSet('credits', ${idx}, 'currency', this.value)">${curOpts}</select></td>
+                        <td class="p-1"><input type="number" step="0.01" value="${crd.value}" class="border p-1 rounded w-full text-xs text-red-700 font-bold" onchange="updateSet('credits', ${idx}, 'value', this.value)"></td>
+                        <td class="p-1"><input type="number" min="1" max="31" value="${crd.dueDate||''}" class="border p-1 rounded w-full text-xs" onchange="updateSet('credits', ${idx}, 'dueDate', this.value)" placeholder="1-31"></td>
+                        <td class="p-1"><input type="number" min="1" max="31" value="${crd.statementDate||''}" class="border p-1 rounded w-full text-xs" onchange="updateSet('credits', ${idx}, 'statementDate', this.value)" placeholder="1-31"></td>
+                        <td class="p-1"><input type="text" value="${crd.note||''}" class="border p-1 rounded w-full text-xs" onchange="updateSet('credits', ${idx}, 'note', this.value)"></td>
                         <td class="p-1 text-center"><button onclick="deleteItem('credits', ${idx})" class="text-red-500 font-bold">🗑️</button></td>
                     </tr>`;
             });
         }
 
-        function buildCurrencySelect(selected, onchangeTxt) {
-            let html = `<select class="border p-1 rounded w-full" onchange="${onchangeTxt}">`;
-            CURRENCIES.forEach(c => html += `<option value="${c}" ${c===selected?'selected':''}>${c}</option>`);
-            return html + `</select>`;
-        }
-        function buildDaySelect(selected, onchangeTxt) {
-            let html = `<select class="border p-1 rounded w-full" onchange="${onchangeTxt}">`;
-            DAYS_IN_MONTH.forEach(d => html += `<option value="${d}" ${d==selected?'selected':''}>${d}</option>`);
-            return html + `</select>`;
+        function syncFormDropdowns() {
+            document.getElementById('txCategory').innerHTML = getCategoryOptions();
+            
+            const methodHtml = getMethodOptions();
+            document.getElementById('txMethod').innerHTML = methodHtml;
+            document.getElementById('txToMethod').innerHTML = methodHtml;
+            
+            renderShortcutsGrid();
         }
 
-        function updateSet(arrName, idx, key, val) {
-            if(['value', 'budget', 'amount'].includes(key)) {
-                settings[arrName][idx][key] = parseFloat(val) || 0;
+        function updateSet(arrName, idx, field, val) {
+            if(field === 'budget' || field === 'value' || field === 'amount') {
+                settings[arrName][idx][field] = parseFloat(val) || 0;
+            } else if (field === 'dueDate' || field === 'statementDate') {
+                settings[arrName][idx][field] = parseInt(val) || '';
             } else {
-                settings[arrName][idx][key] = val;
+                settings[arrName][idx][field] = val;
             }
             saveSettings();
-            if(arrName === 'categories' || arrName === 'assets' || arrName === 'credits') {
-                renderSettingsDOM();
-            }
-            updateAllViews();
-        }
-        function deleteItem(arrName, idx) {
-            if(confirm("確定刪除？")) {
-                settings[arrName].splice(idx, 1);
-                saveSettings();
-                renderSettingsDOM();
-                syncFormDropdowns();
-                updateAllViews();
-            }
         }
 
         function addNewCategory() {
             settings.categories.push({ name: "新種類", budget: 0 });
-            saveSettings(); renderSettingsDOM(); syncFormDropdowns();
+            saveSettings(); renderSettingsDOM();
         }
         function addNewShortcut() {
-            let defCat = settings.categories.length > 0 ? settings.categories[0].name : "";
-            let defMethod = settings.assets.length > 0 ? `ast|${settings.assets[0].id}` : "";
-            settings.shortcuts.push({ 
-                name: "新捷徑", type: "expense", amount: 10, category: defCat, desc: "", methodRaw: defMethod 
-            });
-            saveSettings(); renderSettingsDOM(); updateAllViews();
+            settings.shortcuts.push({ name: "新捷徑", type: "expense", amount: 0, category: settings.categories[0]?.name || "", desc: "", methodRaw: "" });
+            saveSettings(); renderSettingsDOM();
         }
         function addNewAssetAccount() {
-            settings.assets.push({ id: "ast_" + Date.now(), name: "新資金戶口", currency: "HKD", value: 0, note: "" });
-            saveSettings(); renderSettingsDOM(); syncFormDropdowns();
+            settings.assets.push({ id: 'ast_' + Date.now(), name: "新資金戶口", currency: "HKD", value: 0, note: "" });
+            saveSettings(); renderSettingsDOM();
         }
         function addNewCreditAccount() {
-            settings.credits.push({ id: "crd_" + Date.now(), name: "新預付戶口", currency: "HKD", value: 0, payDay: 1, stateDay: 1, note: "" });
-            saveSettings(); renderSettingsDOM(); syncFormDropdowns();
+            settings.credits.push({ id: 'crd_' + Date.now(), name: "新信用卡", currency: "HKD", value: 0, dueDate: 1, statementDate: 15, note: "" });
+            saveSettings(); renderSettingsDOM();
         }
 
-        function syncFormDropdowns() {
-            // 種類選單
-            const catSelect = document.getElementById('txCategory');
-            const currentCat = catSelect.value; 
-            catSelect.innerHTML = '';
-            settings.categories.forEach(cat => {
-                let isSelected = (cat.name === currentCat) ? 'selected' : '';
-                catSelect.innerHTML += `<option value="${cat.name}" ${isSelected}>${cat.name}</option>`;
-            });
-
-            // 輔助函式：填充戶口群組
-            function fillAccountDropdown(selectEl) {
-                const currentVal = selectEl.value;
-                selectEl.innerHTML = '';
-                
-                if(settings.assets.length > 0) {
-                    let optGroup = document.createElement('optgroup');
-                    optGroup.label = "🟢 資金戶口 (正資產)";
-                    settings.assets.forEach(act => {
-                        let isSelected = (`ast|${act.id}` === currentVal) ? 'selected' : '';
-                        optGroup.innerHTML += `<option value="ast|${act.id}" ${isSelected}>${act.name} (${act.currency} ${act.value.toFixed(2)})</option>`;
-                    });
-                    selectEl.appendChild(optGroup);
-                }
-                if(settings.credits.length > 0) {
-                    let optGroup = document.createElement('optgroup');
-                    optGroup.label = "🔴 預付戶口 (信用卡)";
-                    settings.credits.forEach(act => {
-                        let isSelected = (`crd|${act.id}` === currentVal) ? 'selected' : '';
-                        optGroup.innerHTML += `<option value="crd|${act.id}" ${isSelected}>${act.name} (${act.currency} ${act.value.toFixed(2)})</option>`;
-                    });
-                    selectEl.appendChild(optGroup);
-                }
+        function deleteItem(arrName, idx) {
+            if(confirm('確定刪除？')) {
+                settings[arrName].splice(idx, 1);
+                saveSettings(); renderSettingsDOM();
             }
-
-            fillAccountDropdown(document.getElementById('txMethod'));
-            fillAccountDropdown(document.getElementById('txToMethod'));
         }
 
-        function onDateChange() {
-            const selectedDate = document.getElementById('txDate').value;
-            if(!selectedDate) return;
-            initDefaultDateType(selectedDate);
-            document.getElementById('dayTypeSelect').value = dateBudgetTypes[selectedDate];
-            updateAllViews();
-        }
-
-        function updateDailyBudgetView() {
-            const selectedDate = document.getElementById('txDate').value;
-            if(!selectedDate) return;
-            dateBudgetTypes[selectedDate] = document.getElementById('dayTypeSelect').value;
-            localStorage.setItem('v6_date_types', JSON.stringify(dateBudgetTypes));
-            updateAllViews();
-        }
-
-        let detailsVisible = false;
-        function toggleDailyDetails() {
-            detailsVisible = !detailsVisible;
-            const detailSec = document.getElementById('dailyDetailSection');
-            const btnSpan = document.getElementById('toggleDetailBtn').querySelectorAll('span')[1];
-            if(detailsVisible) {
-                detailSec.classList.remove('hidden');
-                btnSpan.innerText = "🔼";
+        function applyShortcut(idx) {
+            const sc = settings.shortcuts[idx];
+            if(sc.type === 'expense') {
+                document.querySelector('input[name="txType"][value="expense"]').checked = true;
             } else {
-                detailSec.classList.add('hidden');
-                btnSpan.innerText = "🔽";
+                document.querySelector('input[name="txType"][value="income"]').checked = true;
             }
+            toggleTxTypeView();
+            document.getElementById('txAmount').value = sc.amount;
+            document.getElementById('txCategory').value = sc.category;
+            document.getElementById('txDesc').value = sc.desc;
+            if(sc.methodRaw) document.getElementById('txMethod').value = sc.methodRaw;
         }
 
-        function renderShortcuts() {
+        function renderShortcutsGrid() {
             const container = document.getElementById('shortcutsContainer');
-            if (settings.shortcuts.length === 0) {
-                container.innerHTML = `<span class="text-xs text-gray-400 py-1">未設定捷徑，請入設定新增。</span>`;
+            container.innerHTML = '';
+            if(settings.shortcuts.length === 0) {
+                container.innerHTML = '<span class="text-xs text-gray-400">未設定捷徑</span>';
                 return;
             }
-            container.innerHTML = '';
             settings.shortcuts.forEach((sc, idx) => {
+                let bg = sc.type === 'expense' ? 'bg-orange-100 text-orange-800 border-orange-200 hover:bg-orange-200' : 'bg-green-100 text-green-800 border-green-200 hover:bg-green-200';
                 container.innerHTML += `
-                    <button onclick="executeShortcut(${idx})" class="bg-white border border-yellow-300 shadow-sm text-gray-700 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-yellow-50 transition active:scale-95">
-                        ${sc.name} <span class="text-xs font-normal text-gray-500">($${sc.amount})</span>
+                    <button onclick="applyShortcut(${idx})" class="px-3 py-1.5 rounded-lg border shadow-sm text-sm font-semibold transition ${bg}">
+                        ${sc.name}
                     </button>
                 `;
             });
         }
 
-        function executeShortcut(idx) {
-            const sc = settings.shortcuts[idx];
-            const date = document.getElementById('txDate').value || getTodayDateString();
-            
-            if(!sc.methodRaw) return alert('此捷徑未設定付款方式！');
-            
-            const [accType, accId] = sc.methodRaw.split('|');
-            let accountList = accType === 'ast' ? settings.assets : settings.credits;
-            let account = accountList.find(a => a.id === accId);
-
-            if(!account) return alert('捷徑綁定嘅戶口已失效！');
-            if(sc.amount <= 0) return alert('捷徑金額必須大於 0！');
-
-            if (sc.type === 'income') { account.value += sc.amount; } 
-            else { account.value -= sc.amount; }
-            saveSettings();
-
-            transactions.push({
-                id: 'tx_' + Date.now(),
-                date, type: sc.type, amount: sc.amount, category: sc.category, desc: sc.desc || '(捷徑)',
-                methodRaw: sc.methodRaw, methodName: account.name
-            });
-            localStorage.setItem('v6_txs', JSON.stringify(transactions));
-            
-            if(navigator.vibrate) navigator.vibrate(50);
-            alert(`✅ 已快速記帳：${sc.name} ($${sc.amount})`);
-            updateAllViews();
-        }
-
-        function updateAllViews() {
-            const selectedDate = document.getElementById('txDate').value;
-            if(!selectedDate) return;
-            document.getElementById('detailDateText').innerText = "(" + selectedDate + ")";
-
-            let dayExpenses = 0;
-            let dayTxs = transactions.filter(t => t.date === selectedDate);
-            dayTxs.forEach(t => { if(t.type === 'expense') dayExpenses += t.amount; });
-
-            const currentType = dateBudgetTypes[selectedDate] || 'weekday';
-            document.getElementById('dayTypeSelect').value = currentType;
-            const currentBudget = currentType === 'holiday' ? settings.holidayBudget : settings.weekdayBudget;
-            
-            let percent = currentBudget > 0 ? (dayExpenses / currentBudget) * 100 : 0;
-            if(percent > 100) percent = 100;
-            
-            document.getElementById('budgetProgressText').innerText = dayExpenses.toFixed(1) + " / " + currentBudget + " (" + (currentBudget>0?(dayExpenses/currentBudget*100):0).toFixed(0) + "%)";
-            
-            const progressBar = document.getElementById('budgetProgressBar');
-            progressBar.style.width = percent + '%';
-            progressBar.className = dayExpenses > currentBudget ? "bg-red-500 h-full transition-all duration-300" : "bg-green-500 h-full transition-all duration-300";
-
-            const tbody = document.getElementById('dailyDetailTableBody');
-            tbody.innerHTML = '';
-            if(dayTxs.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="text-center p-4 text-gray-400 text-xs">當日無收支紀錄</td></tr>';
-            } else {
-                dayTxs.forEach(t => {
-                    if (t.type === 'transfer') {
-                        // 轉帳項目渲染
-                        tbody.innerHTML += `
-                            <tr class="border-b border-indigo-50 bg-indigo-50/20 hover:bg-indigo-50/40">
-                                <td class="p-2 font-bold text-indigo-600">🔄 轉帳</td>
-                                <td class="p-2 text-indigo-700 font-medium">資金轉移</td>
-                                <td class="p-2 text-gray-600">${t.desc||'-'}<br><span class="text-[10px] text-gray-400 font-semibold">${t.methodName} ➔ ${t.toMethodName}</span></td>
-                                <td class="p-2 text-right font-bold text-indigo-600">$${t.amount.toFixed(2)}</td>
-                                <td class="p-2 text-center"><button onclick="deleteTransaction('${t.id}')" class="text-xs text-red-500 hover:underline">刪除</button></td>
-                            </tr>`;
-                    } else {
-                        // 一般收支項目渲染
-                        const isInc = t.type === 'income';
-                        tbody.innerHTML += `
-                            <tr class="border-b border-gray-100 hover:bg-gray-50">
-                                <td class="p-2 font-bold ${isInc?'text-green-600':'text-red-600'}">${isInc?'收款':'付款'}</td>
-                                <td class="p-2">${t.category}</td>
-                                <td class="p-2 text-gray-500">${t.desc||'-'} <br><span class="text-[10px] text-gray-400">[${t.methodName}]</span></td>
-                                <td class="p-2 text-right font-semibold ${isInc?'text-green-600':'text-red-600'}">${isInc?'':'-'}${t.amount.toFixed(2)}</td>
-                                <td class="p-2 text-center"><button onclick="deleteTransaction('${t.id}')" class="text-xs text-red-500 hover:underline">刪除</button></td>
-                            </tr>`;
-                    }
-                });
-            }
-
-            renderCalendar();
-            renderCategoryChart();
-            renderShortcuts();
-            syncFormDropdowns();
+        function findAccount(rawVal) {
+            if(!rawVal) return null;
+            const [type, id] = rawVal.split('|');
+            if(type === 'ast') return { type, data: settings.assets.find(a => a.id === id) };
+            if(type === 'crd') return { type, data: settings.credits.find(a => a.id === id) };
+            return null;
         }
 
         function addTransaction(e) {
             e.preventDefault();
             const date = document.getElementById('txDate').value;
             const type = document.querySelector('input[name="txType"]:checked').value;
-            const amount = parseFloat(document.getElementById('txAmount').value) || 0;
+            const amount = parseFloat(document.getElementById('txAmount').value);
+            const category = document.getElementById('txCategory').value;
             const desc = document.getElementById('txDesc').value;
             const methodRaw = document.getElementById('txMethod').value;
+            const toMethodRaw = document.getElementById('txToMethod').value;
+            
+            // 是否計入預算標記
+            const includeInBudget = document.getElementById('txIncludeBudget').checked;
 
-            if(amount <= 0) return alert('請輸入有效金額！');
-            if(!methodRaw) return alert('請先設定戶口！');
+            if(!methodRaw) { alert("請先設定並選擇付款/存入方式！"); return; }
+            
+            const fromAcc = findAccount(methodRaw);
+            if(!fromAcc || !fromAcc.data) { alert("找不到所選戶口！"); return; }
+
+            let txObj = {
+                id: 'tx_' + Date.now(),
+                date, type, amount, category, desc,
+                methodRaw, methodName: fromAcc.data.name,
+                includeInBudget: includeInBudget 
+            };
 
             if (type === 'transfer') {
-                // 處理轉帳邏輯
-                const toMethodRaw = document.getElementById('txToMethod').value;
-                if(!toMethodRaw) return alert('請選擇目標存入戶口！');
-                if(methodRaw === toMethodRaw) return alert('來源戶口同目標戶口唔可以相同！');
+                if(!toMethodRaw) { alert("請選擇目標戶口！"); return; }
+                if(methodRaw === toMethodRaw) { alert("來源和目標戶口不能相同！"); return; }
+                const toAcc = findAccount(toMethodRaw);
+                if(!toAcc || !toAcc.data) { alert("找不到目標戶口！"); return; }
+                
+                txObj.toMethodRaw = toMethodRaw;
+                txObj.toMethodName = toAcc.data.name;
+                // 轉帳強行不計入預算
+                txObj.includeInBudget = false;
 
-                const [fType, fId] = methodRaw.split('|');
-                const [tType, tId] = toMethodRaw.split('|');
+                // 扣錢 (From)
+                if(fromAcc.type === 'ast') fromAcc.data.value -= amount;
+                else fromAcc.data.value += amount; // 信用卡欠款增加
 
-                let fromAccount = (fType === 'ast' ? settings.assets : settings.credits).find(a => a.id === fId);
-                let toAccount = (tType === 'ast' ? settings.assets : settings.credits).find(a => a.id === tId);
-
-                if(!fromAccount || !toAccount) return alert('戶口資料讀取出錯！');
-
-                // 來源扣錢，目標加錢 (如果目標係信用卡，加錢就等於還左卡數/回復額度)
-                fromAccount.value -= amount;
-                toAccount.value += amount;
-                saveSettings();
-
-                transactions.push({
-                    id: 'tx_' + Date.now(),
-                    date, type, amount, category: '資金轉移', desc: desc || '轉帳內部移轉',
-                    methodRaw, methodName: fromAccount.name,
-                    toMethodRaw, toMethodName: toAccount.name
-                });
+                // 加錢 (To)
+                if(toAcc.type === 'ast') toAcc.data.value += amount;
+                else toAcc.data.value -= amount; // 信用卡找數 (欠款減少)
+                
             } else {
-                // 處理一般收支
-                const category = document.getElementById('txCategory').value;
-                const [accType, accId] = methodRaw.split('|');
-                let accountList = accType === 'ast' ? settings.assets : settings.credits;
-                let account = accountList.find(a => a.id === accId);
-
-                if(!account) return alert('找不到對應戶口！');
-
-                if (type === 'income') { account.value += amount; } 
-                else { account.value -= amount; }
-                saveSettings();
-
-                transactions.push({
-                    id: 'tx_' + Date.now(),
-                    date, type, amount, category, desc,
-                    methodRaw, methodName: account.name
-                });
+                if(type === 'expense') {
+                    if(fromAcc.type === 'ast') fromAcc.data.value -= amount;
+                    else fromAcc.data.value += amount; // 信用卡欠款增加
+                } else { // income
+                    if(fromAcc.type === 'ast') fromAcc.data.value += amount;
+                    else fromAcc.data.value -= amount; // 信用卡退款/入數
+                }
             }
 
+            transactions.push(txObj);
+            
             localStorage.setItem('v6_txs', JSON.stringify(transactions));
+            saveSettings(); 
+
             document.getElementById('txAmount').value = '';
             document.getElementById('txDesc').value = '';
             updateAllViews();
         }
 
         function deleteTransaction(id) {
-            if(confirm('確定要刪除？(系統會自動退回戶口金額)')) {
-                const tx = transactions.find(t => t.id === id);
-                if (tx) {
-                    if (tx.type === 'transfer') {
-                        // 轉帳刪除還原
-                        const [fType, fId] = tx.methodRaw.split('|');
-                        const [tType, tId] = tx.toMethodRaw.split('|');
-                        let fromAccount = (fType === 'ast' ? settings.assets : settings.credits).find(a => a.id === fId);
-                        let toAccount = (tType === 'ast' ? settings.assets : settings.credits).find(a => a.id === tId);
-
-                        if (fromAccount) fromAccount.value += tx.amount; // 來源加返錢
-                        if (toAccount) toAccount.value -= tx.amount;   // 目標扣返錢
-                    } else {
-                        // 一般收支刪除還原
-                        const [accType, accId] = tx.methodRaw.split('|');
-                        let accountList = accType === 'ast' ? settings.assets : settings.credits;
-                        let account = accountList.find(a => a.id === accId);
-                        if (account) {
-                            if (tx.type === 'income') account.value -= tx.amount;
-                            else account.value += tx.amount;
+            const idx = transactions.findIndex(t => t.id === id);
+            if(idx > -1) {
+                const tx = transactions[idx];
+                const fromAcc = findAccount(tx.methodRaw);
+                
+                if (tx.type === 'transfer') {
+                    const toAcc = findAccount(tx.toMethodRaw);
+                    // 還原扣錢 (From)
+                    if(fromAcc && fromAcc.data) {
+                        if(fromAcc.type === 'ast') fromAcc.data.value += tx.amount;
+                        else fromAcc.data.value -= tx.amount;
+                    }
+                    // 還原加錢 (To)
+                    if(toAcc && toAcc.data) {
+                        if(toAcc.type === 'ast') toAcc.data.value -= tx.amount;
+                        else toAcc.data.value += tx.amount;
+                    }
+                } else {
+                    if(fromAcc && fromAcc.data) {
+                        if(tx.type === 'expense') {
+                            if(fromAcc.type === 'ast') fromAcc.data.value += tx.amount;
+                            else fromAcc.data.value -= tx.amount;
+                        } else {
+                            if(fromAcc.type === 'ast') fromAcc.data.value -= tx.amount;
+                            else fromAcc.data.value += tx.amount;
                         }
                     }
-                    saveSettings();
                 }
-                transactions = transactions.filter(t => t.id !== id);
+                
+                transactions.splice(idx, 1);
                 localStorage.setItem('v6_txs', JSON.stringify(transactions));
+                saveSettings();
                 updateAllViews();
+            }
+        }
+
+        function onDateChange() {
+            const dateStr = document.getElementById('txDate').value;
+            initDefaultDateType(dateStr);
+            document.getElementById('dayTypeSelect').value = dateBudgetTypes[dateStr];
+            updateDailyDetail();
+            updateDailyBudgetView();
+        }
+
+        function updateAllViews() {
+            const dateStr = document.getElementById('txDate').value;
+            document.getElementById('dayTypeSelect').value = dateBudgetTypes[dateStr] || 'weekday';
+            updateDailyBudgetView();
+            updateDailyDetail();
+            renderCalendar();
+            renderCategoryChart();
+        }
+
+        function updateDailyBudgetView() {
+            const dateStr = document.getElementById('txDate').value;
+            const bType = document.getElementById('dayTypeSelect').value;
+            dateBudgetTypes[dateStr] = bType;
+            localStorage.setItem('v6_date_types', JSON.stringify(dateBudgetTypes));
+
+            const totalBudget = bType === 'holiday' ? settings.holidayBudget : settings.weekdayBudget;
+            
+            let dayExpenses = 0;
+            let dayTxs = transactions.filter(t => t.date === dateStr);
+            dayTxs.forEach(t => {
+                // 只有支出，並且 includeInBudget !== false (相容舊資料) 才計入進度條
+                if(t.type === 'expense' && t.includeInBudget !== false) {
+                    dayExpenses += t.amount;
+                }
+            });
+
+            let pct = totalBudget > 0 ? (dayExpenses / totalBudget) * 100 : 0;
+            if(pct > 100) pct = 100;
+
+            document.getElementById('budgetProgressText').innerText = `${dayExpenses.toFixed(1)} / ${totalBudget} (${Math.round(pct)}%)`;
+            
+            const bar = document.getElementById('budgetProgressBar');
+            bar.style.width = pct + '%';
+            if(pct > 90) bar.className = "bg-red-500 h-full transition-all duration-300";
+            else if(pct > 70) bar.className = "bg-yellow-500 h-full transition-all duration-300";
+            else bar.className = "bg-green-500 h-full transition-all duration-300";
+        }
+
+        function updateDailyDetail() {
+            const dateStr = document.getElementById('txDate').value;
+            document.getElementById('detailDateText').innerText = `(${dateStr})`;
+            
+            let dayTxs = transactions.filter(t => t.date === dateStr);
+            const tbody = document.getElementById('dailyDetailTableBody');
+            tbody.innerHTML = '';
+            
+            if(dayTxs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-gray-400">當日無紀錄</td></tr>';
+                return;
+            }
+
+            dayTxs.forEach(t => {
+                let typeText, amountColor, methodStr, noBudgetBadge = "";
+                
+                if (t.type === 'expense') {
+                    typeText = '支出'; amountColor = 'text-red-600';
+                    methodStr = t.methodName;
+                    if (t.includeInBudget === false) {
+                        noBudgetBadge = `<span class="ml-1 text-[10px] bg-gray-200 text-gray-500 px-1 rounded">不計預算</span>`;
+                    }
+                } else if (t.type === 'income') {
+                    typeText = '收入'; amountColor = 'text-green-600';
+                    methodStr = t.methodName;
+                } else {
+                    typeText = '轉帳'; amountColor = 'text-indigo-600';
+                    methodStr = `${t.methodName} ➔ ${t.toMethodName}`;
+                }
+
+                tbody.innerHTML += `
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="p-2 font-bold ${amountColor}">${typeText}</td>
+                        <td class="p-2">${t.type === 'transfer' ? '-' : t.category}</td>
+                        <td class="p-2 truncate max-w-[100px] sm:max-w-xs" title="${t.desc || ''}">
+                            <div class="text-xs text-gray-400">${methodStr}</div>
+                            <div>${t.desc || '-'}</div>
+                        </td>
+                        <td class="p-2 text-right font-bold ${amountColor}">
+                            ${t.amount.toFixed(2)} ${noBudgetBadge}
+                        </td>
+                        <td class="p-2 text-center">
+                            <button onclick="deleteTransaction('${t.id}')" class="text-red-500 hover:text-red-700 bg-red-50 px-2 py-1 rounded">刪</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function toggleDailyDetails() {
+            const sec = document.getElementById('dailyDetailSection');
+            const btn = document.getElementById('toggleDetailBtn');
+            if(sec.classList.contains('hidden')) {
+                sec.classList.remove('hidden');
+                btn.innerHTML = `<span>🔍 當日消費明細 <span id="detailDateText" class="font-normal text-gray-500 text-xs">(${document.getElementById('txDate').value})</span></span><span>🔼</span>`;
+            } else {
+                sec.classList.add('hidden');
+                btn.innerHTML = `<span>🔍 當日消費明細 <span id="detailDateText" class="font-normal text-gray-500 text-xs">(${document.getElementById('txDate').value})</span></span><span>🔽</span>`;
             }
         }
 
         function renderCalendar() {
             const year = parseInt(document.getElementById('calYearSelect').value);
-            const month = parseInt(document.getElementById('calMonthSelect').value); 
+            const month = parseInt(document.getElementById('calMonthSelect').value);
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            
+            let monthInc = 0; let monthExp = 0;
+
             const grid = document.getElementById('calendarGrid');
-            if(!grid) return;
             grid.innerHTML = '';
 
-            const firstDayIndex = new Date(year, month, 1).getDay();
-            const totalDays = new Date(year, month + 1, 0).getDate();
-
-            let mIncome = 0, mExpense = 0;
-            const mPrefix = year + '-' + String(month + 1).padStart(2, '0');
-            
-            transactions.filter(t => t.date.startsWith(mPrefix)).forEach(t => {
-                if(t.type === 'income') mIncome += t.amount;
-                if(t.type === 'expense') mExpense += t.amount;
-            });
-
-            document.getElementById('monthIncomeText').innerText = mIncome.toFixed(2);
-            document.getElementById('monthExpenseText').innerText = mExpense.toFixed(2);
-            const profit = mIncome - mExpense;
-            const pEl = document.getElementById('monthProfitText');
-            pEl.innerText = profit.toFixed(2);
-            pEl.className = profit >= 0 ? "font-bold text-green-600 text-sm sm:text-base" : "font-bold text-red-600 text-sm sm:text-base";
-
-            for(let i = 0; i < firstDayIndex; i++) {
-                grid.innerHTML += `<div class="bg-gray-50 h-16 border border-gray-100 rounded opacity-30"></div>`;
+            for(let i = 0; i < firstDay; i++) {
+                grid.innerHTML += `<div class="p-2 bg-gray-50 rounded min-h-[60px]"></div>`;
             }
 
-            for(let day = 1; day <= totalDays; day++) {
+            // 整合信用卡到期日及結算日資訊
+            let crdEvents = {}; // { day: [ {text, color} ] }
+            settings.credits.forEach(crd => {
+                if(crd.dueDate) {
+                    if(!crdEvents[crd.dueDate]) crdEvents[crd.dueDate] = [];
+                    crdEvents[crd.dueDate].push({ text: `到期:${crd.name}`, color: 'text-red-500 bg-red-100' });
+                }
+                if(crd.statementDate) {
+                    if(!crdEvents[crd.statementDate]) crdEvents[crd.statementDate] = [];
+                    crdEvents[crd.statementDate].push({ text: `結算:${crd.name}`, color: 'text-indigo-500 bg-indigo-100' });
+                }
+            });
+
+            for(let day = 1; day <= daysInMonth; day++) {
                 const dStr = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
                 
-                let dayExp = 0;
-                transactions.forEach(t => { if(t.date === dStr && t.type === 'expense') dayExp += t.amount; });
+                let dayExp = 0; let dayInc = 0;
+                transactions.forEach(t => {
+                    if(t.date === dStr) {
+                        if(t.type === 'expense') {
+                            // 月曆支出只計入有計預算嘅部分，以反映實際消費
+                            if(t.includeInBudget !== false) {
+                                dayExp += t.amount;
+                                monthExp += t.amount;
+                            }
+                        } else if(t.type === 'income') {
+                            dayInc += t.amount;
+                            monthInc += t.amount;
+                        }
+                    }
+                });
 
-                if (!dateBudgetTypes[dStr]) {
-                    const wD = new Date(dStr).getDay();
-                    dateBudgetTypes[dStr] = (wD === 0 || wD === 6) ? 'holiday' : 'weekday';
-                }
-                const dType = dateBudgetTypes[dStr];
-                const dBudget = dType === 'holiday' ? settings.holidayBudget : settings.weekdayBudget;
-
-                const hasBill = settings.credits.some(c => c.payDay == day);
-                const billTag = hasBill ? `<span class="absolute bottom-1 left-1 text-[9px] bg-red-100 text-red-700 px-1 rounded border border-red-200">💳 到期</span>` : '';
-
-                const isSel = (document.getElementById('txDate').value === dStr);
-                const boxClass = `relative bg-white h-16 border p-1 flex flex-col justify-between cursor-pointer hover:bg-indigo-50 transition rounded text-left ${isSel?'ring-2 ring-indigo-600 bg-indigo-50 z-10':'border-gray-200'}`;
+                let content = `<div class="font-bold text-gray-600">${day}</div>`;
                 
-                const wDay = new Date(dStr).getDay();
-                const dNumClass = wDay===0 ? "font-bold text-red-500" : wDay===6 ? "font-bold text-blue-500" : "font-bold text-gray-700";
-                
-                let expDisp = '';
-                if(dayExp > 0) {
-                    const cClass = dayExp > dBudget ? 'text-red-600 font-bold' : 'text-green-600 font-semibold';
-                    expDisp = `<span class="${cClass} text-[10px] sm:text-xs block text-right mt-auto z-10 relative">$${dayExp.toFixed(0)}</span>`;
+                if(crdEvents[day]) {
+                    crdEvents[day].forEach(ev => {
+                        content += `<div class="text-[9px] ${ev.color} rounded px-0.5 mt-0.5 truncate" title="${ev.text}">${ev.text}</div>`;
+                    });
                 }
 
-                const tText = dType === 'holiday' ? '假' : '平';
-                const tClass = dType === 'holiday' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700';
+                if(dayInc > 0) content += `<div class="text-[10px] text-green-600 mt-1 font-semibold">+${dayInc.toFixed(0)}</div>`;
+                if(dayExp > 0) content += `<div class="text-[10px] text-red-600 font-semibold">-${dayExp.toFixed(0)}</div>`;
 
+                let isToday = (dStr === getTodayDateString()) ? 'ring-2 ring-indigo-500 bg-indigo-50' : 'bg-white border';
+                
                 grid.innerHTML += `
-                    <div class="${boxClass}" onclick="document.getElementById('txDate').value='${dStr}'; onDateChange();">
-                        <div class="flex justify-between items-center w-full z-10 relative">
-                            <span class="${dNumClass}">${day}</span>
-                            <span class="text-[9px] px-0.5 scale-90 rounded ${tClass}">${tText}</span>
-                        </div>
-                        ${billTag}
-                        ${expDisp}
-                    </div>`;
+                    <div class="p-1 rounded min-h-[60px] cursor-pointer hover:bg-gray-50 flex flex-col items-center ${isToday}" onclick="jumpToDate('${dStr}')">
+                        ${content}
+                    </div>
+                `;
+            }
+
+            document.getElementById('monthIncomeText').innerText = monthInc.toFixed(1);
+            document.getElementById('monthExpenseText').innerText = monthExp.toFixed(1);
+            
+            let profit = monthInc - monthExp;
+            let pText = document.getElementById('monthProfitText');
+            pText.innerText = profit.toFixed(1);
+            pText.className = profit >= 0 ? "font-bold text-green-600 text-sm sm:text-base" : "font-bold text-red-600 text-sm sm:text-base";
+        }
+
+        function jumpToDate(dStr) {
+            document.getElementById('txDate').value = dStr;
+            onDateChange();
+            
+            // 手機版自動捲動去記帳表單
+            if (window.innerWidth < 1024) {
+                document.getElementById('transactionForm').scrollIntoView({ behavior: 'smooth' });
             }
         }
 
         function renderCategoryChart() {
-            const year = document.getElementById('calYearSelect').value;
-            const month = parseInt(document.getElementById('calMonthSelect').value) + 1;
-            const mPrefix = year + '-' + String(month).padStart(2, '0');
+            const year = parseInt(document.getElementById('calYearSelect').value);
+            const month = parseInt(document.getElementById('calMonthSelect').value);
+            const prefix = year + '-' + String(month + 1).padStart(2, '0');
 
-            let categoryTotals = {};
-            settings.categories.forEach(c => categoryTotals[c.name] = 0);
+            let catSums = {};
+            settings.categories.forEach(c => catSums[c.name] = 0);
+            
+            let totalMonthExp = 0;
 
-            transactions.filter(t => t.date.startsWith(mPrefix) && t.type === 'expense').forEach(t => {
-                if (categoryTotals[t.category] !== undefined) {
-                    categoryTotals[t.category] += t.amount;
-                } else {
-                    categoryTotals[t.category] = t.amount;
+            transactions.forEach(t => {
+                if(t.date.startsWith(prefix) && t.type === 'expense') {
+                    if(catSums[t.category] !== undefined) {
+                        catSums[t.category] += t.amount;
+                        totalMonthExp += t.amount;
+                    }
                 }
             });
 
-            const chartContainer = document.getElementById('categoryChartContainer');
-            chartContainer.innerHTML = '';
+            const container = document.getElementById('categoryChartContainer');
+            container.innerHTML = '';
 
-            let maxAmount = 0;
-            for (let cat in categoryTotals) {
-                if (categoryTotals[cat] > maxAmount) maxAmount = categoryTotals[cat];
-            }
+            settings.categories.forEach(cat => {
+                let spent = catSums[cat.name] || 0;
+                let bgt = cat.budget;
+                let pct = bgt > 0 ? (spent / bgt) * 100 : 0;
+                let over = pct > 100;
+                if(pct > 100) pct = 100;
 
-            if (maxAmount === 0) {
-                chartContainer.innerHTML = '<p class="text-gray-400 text-sm text-center py-4">本月暫無消費紀錄</p>';
-                return;
-            }
+                let barColor = over ? 'bg-red-500' : 'bg-indigo-500';
 
-            for (let cat in categoryTotals) {
-                let amount = categoryTotals[cat];
-                if (amount === 0 && !settings.categories.find(c => c.name === cat)) continue;
-
-                let percent = maxAmount > 0 ? (amount / maxAmount) * 100 : 0;
-                let budgetObj = settings.categories.find(c => c.name === cat);
-                let budgetLimit = budgetObj ? budgetObj.budget : 0;
-                let isOverBudget = budgetLimit > 0 && amount > budgetLimit;
-                
-                let warningTag = isOverBudget ? `<span class="text-red-500 text-[10px] ml-2 px-1 bg-red-50 rounded border border-red-100">超支!</span>` : '';
-                let barColor = isOverBudget ? 'bg-red-500' : 'bg-indigo-500';
-
-                chartContainer.innerHTML += `
-                    <div class="mb-3">
-                        <div class="flex justify-between text-sm font-semibold text-gray-700 mb-1">
-                            <span class="flex items-center">${cat} ${warningTag}</span>
-                            <span>$${amount.toFixed(0)} ${budgetLimit > 0 ? `<span class="text-xs text-gray-400 font-normal">/ 預算 $${budgetLimit}</span>` : ''}</span>
+                container.innerHTML += `
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="font-bold text-gray-700">${cat.name}</span>
+                            <span class="${over ? 'text-red-600 font-bold' : 'text-gray-600'}">${spent.toFixed(1)} / ${bgt}</span>
                         </div>
-                        <div class="w-full bg-gray-100 rounded-full h-3.5 overflow-hidden flex shadow-inner">
-                            <div class="${barColor} h-full transition-all duration-500" style="width: ${percent}%"></div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="${barColor} h-full rounded-full" style="width: ${pct}%"></div>
                         </div>
                     </div>
                 `;
-            }
+            });
         }
     </script>
 </body>
