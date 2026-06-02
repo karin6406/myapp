@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>個人記帳與預算管理系統 Pro Max V8</title>
+    <title>個人記帳與預算管理系統 Pro Max V9</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 text-gray-800 min-h-screen p-4 md:p-8">
@@ -22,7 +22,7 @@
                 </div>
             </div>
             <div class="text-center md:text-right">
-                <h1 class="text-xl font-bold text-indigo-800">📊 記帳與預算系統 V8</h1>
+                <h1 class="text-xl font-bold text-indigo-800">📊 記帳與預算系統 V9</h1>
             </div>
         </header>
 
@@ -65,12 +65,15 @@
                         </div>
                         <div>
                             <label class="block font-medium mb-1">收支類型</label>
-                            <div class="flex gap-4">
+                            <div class="flex flex-wrap gap-3">
                                 <label class="flex items-center gap-1 cursor-pointer">
-                                    <input type="radio" name="txType" value="expense" checked> 付款 (支出)
+                                    <input type="radio" name="txType" value="expense" checked onchange="toggleTxTypeView()"> 付款 (支出)
                                 </label>
                                 <label class="flex items-center gap-1 cursor-pointer">
-                                    <input type="radio" name="txType" value="income"> 收款 (收入)
+                                    <input type="radio" name="txType" value="income" onchange="toggleTxTypeView()"> 收款 (收入)
+                                </label>
+                                <label class="flex items-center gap-1 cursor-pointer text-indigo-600 font-semibold">
+                                    <input type="radio" name="txType" value="transfer" onchange="toggleTxTypeView()"> 🔄 戶口轉帳
                                 </label>
                             </div>
                         </div>
@@ -78,18 +81,27 @@
                             <label class="block font-medium mb-1">金額</label>
                             <input type="number" id="txAmount" step="0.01" class="w-full p-2 border rounded focus:ring-2 focus:ring-indigo-400 outline-none" placeholder="0.00" required>
                         </div>
-                        <div>
+                        
+                        <div id="categorySelectContainer">
                             <label class="block font-medium mb-1">種類</label>
                             <select id="txCategory" class="w-full p-2 border rounded bg-white focus:ring-2 focus:ring-indigo-400 outline-none"></select>
                         </div>
+                        
                         <div>
-                            <label class="block font-medium mb-1">用途 (選填)</label>
-                            <input type="text" id="txDesc" class="w-full p-2 border rounded focus:ring-2 focus:ring-indigo-400 outline-none" placeholder="輸入具體用途">
+                            <label class="block font-medium mb-1">用途 / 備註 (選填)</label>
+                            <input type="text" id="txDesc" class="w-full p-2 border rounded focus:ring-2 focus:ring-indigo-400 outline-none" placeholder="輸入具體用途或轉帳備註">
                         </div>
+                        
                         <div>
-                            <label class="block font-medium mb-1">付款方式 (自動連動)</label>
+                            <label id="fromAccountLabel" class="block font-medium mb-1">付款方式 (自動連動)</label>
                             <select id="txMethod" class="w-full p-2 border rounded bg-white focus:ring-2 focus:ring-indigo-400 outline-none"></select>
                         </div>
+
+                        <div id="toAccountSelectContainer" class="hidden">
+                            <label class="block font-medium mb-1 text-indigo-600 font-semibold">🎯 目標戶口 (存入/找數)</label>
+                            <select id="txToMethod" class="w-full p-2 border rounded bg-white focus:ring-2 focus:ring-indigo-400 outline-none border-indigo-300"></select>
+                        </div>
+
                         <button type="submit" class="w-full bg-indigo-600 text-white p-2.5 rounded-lg font-bold hover:bg-indigo-700 transition shadow">新增紀錄</button>
                     </form>
 
@@ -105,7 +117,7 @@
                                     <tr class="bg-gray-100 text-gray-600">
                                         <th class="p-2">類型</th>
                                         <th class="p-2">種類</th>
-                                        <th class="p-2">用途</th>
+                                        <th class="p-2">用途/戶口</th>
                                         <th class="p-2 text-right">金額</th>
                                         <th class="p-2 text-center">操作</th>
                                     </tr>
@@ -299,11 +311,9 @@
     </div>
 
     <script>
-        // 常數：貨幣選項
         const CURRENCIES = ["HKD", "TWD", "KRW", "JPY", "GBP", "USD"];
         const DAYS_IN_MONTH = Array.from({length: 31}, (_, i) => i + 1);
 
-        // 資料庫初始化
         let transactions = JSON.parse(localStorage.getItem('v6_txs')) || [];
         let dateBudgetTypes = JSON.parse(localStorage.getItem('v6_date_types')) || {}; 
         
@@ -318,13 +328,10 @@
                 { id: "ast_1", name: "現金", currency: "HKD", value: 10000.00, note: "" }
             ],
             credits: [],
-            shortcuts: [] // V8 新增：捷徑資料
+            shortcuts: []
         };
 
-        // 舊用戶升級過渡，確保有 shortcuts 陣列
-        if (!settings.shortcuts) {
-            settings.shortcuts = [];
-        }
+        if (!settings.shortcuts) settings.shortcuts = [];
 
         window.onload = function() {
             document.getElementById('holidayBudgetInput').value = settings.holidayBudget;
@@ -397,11 +404,28 @@
             updateAllViews();
         }
 
+        // 動態切換表單檢視 (處理「戶口轉帳」隱藏種類/開啟目標戶口)
+        function toggleTxTypeView() {
+            const type = document.querySelector('input[name="txType"]:checked').value;
+            const catContainer = document.getElementById('categorySelectContainer');
+            const toAccContainer = document.getElementById('toAccountSelectContainer');
+            const fromLabel = document.getElementById('fromAccountLabel');
+
+            if (type === 'transfer') {
+                catContainer.classList.add('hidden');
+                toAccContainer.classList.remove('hidden');
+                fromLabel.innerText = "🛫 來源戶口 (扣除)";
+            } else {
+                catContainer.classList.remove('hidden');
+                toAccContainer.classList.add('hidden');
+                fromLabel.innerText = "付款方式 (自動連動)";
+            }
+        }
+
         function saveSettings() {
             localStorage.setItem('v6_settings', JSON.stringify(settings));
         }
 
-        // 動態生成下拉選單 (供捷徑設定使用)
         function getCategoryOptions(selectedCat) {
             let html = '';
             settings.categories.forEach(cat => {
@@ -443,7 +467,6 @@
                     </tr>`;
             });
 
-            // 渲染捷徑設定表格
             const scBody = document.getElementById('shortcutsTableBody');
             scBody.innerHTML = '';
             settings.shortcuts.forEach((sc, idx) => {
@@ -520,8 +543,6 @@
                 settings[arrName][idx][key] = val;
             }
             saveSettings();
-            
-            // 如果改咗種類或者戶口，需要重新渲染捷徑個表以更新下拉選單
             if(arrName === 'categories' || arrName === 'assets' || arrName === 'credits') {
                 renderSettingsDOM();
             }
@@ -542,10 +563,8 @@
             saveSettings(); renderSettingsDOM(); syncFormDropdowns();
         }
         function addNewShortcut() {
-            // 預設揀第一個種類同戶口
             let defCat = settings.categories.length > 0 ? settings.categories[0].name : "";
             let defMethod = settings.assets.length > 0 ? `ast|${settings.assets[0].id}` : "";
-            
             settings.shortcuts.push({ 
                 name: "新捷徑", type: "expense", amount: 10, category: defCat, desc: "", methodRaw: defMethod 
             });
@@ -561,6 +580,7 @@
         }
 
         function syncFormDropdowns() {
+            // 種類選單
             const catSelect = document.getElementById('txCategory');
             const currentCat = catSelect.value; 
             catSelect.innerHTML = '';
@@ -569,28 +589,33 @@
                 catSelect.innerHTML += `<option value="${cat.name}" ${isSelected}>${cat.name}</option>`;
             });
 
-            const methodSelect = document.getElementById('txMethod');
-            const currentMethod = methodSelect.value;
-            methodSelect.innerHTML = '';
-            
-            if(settings.assets.length > 0) {
-                let optGroup = document.createElement('optgroup');
-                optGroup.label = "🟢 資金戶口 (正資產)";
-                settings.assets.forEach(act => {
-                    let isSelected = (`ast|${act.id}` === currentMethod) ? 'selected' : '';
-                    optGroup.innerHTML += `<option value="ast|${act.id}" ${isSelected}>${act.name} (${act.currency} ${act.value.toFixed(2)})</option>`;
-                });
-                methodSelect.appendChild(optGroup);
+            // 輔助函式：填充戶口群組
+            function fillAccountDropdown(selectEl) {
+                const currentVal = selectEl.value;
+                selectEl.innerHTML = '';
+                
+                if(settings.assets.length > 0) {
+                    let optGroup = document.createElement('optgroup');
+                    optGroup.label = "🟢 資金戶口 (正資產)";
+                    settings.assets.forEach(act => {
+                        let isSelected = (`ast|${act.id}` === currentVal) ? 'selected' : '';
+                        optGroup.innerHTML += `<option value="ast|${act.id}" ${isSelected}>${act.name} (${act.currency} ${act.value.toFixed(2)})</option>`;
+                    });
+                    selectEl.appendChild(optGroup);
+                }
+                if(settings.credits.length > 0) {
+                    let optGroup = document.createElement('optgroup');
+                    optGroup.label = "🔴 預付戶口 (信用卡)";
+                    settings.credits.forEach(act => {
+                        let isSelected = (`crd|${act.id}` === currentVal) ? 'selected' : '';
+                        optGroup.innerHTML += `<option value="crd|${act.id}" ${isSelected}>${act.name} (${act.currency} ${act.value.toFixed(2)})</option>`;
+                    });
+                    selectEl.appendChild(optGroup);
+                }
             }
-            if(settings.credits.length > 0) {
-                let optGroup = document.createElement('optgroup');
-                optGroup.label = "🔴 預付戶口 (信用卡)";
-                settings.credits.forEach(act => {
-                    let isSelected = (`crd|${act.id}` === currentMethod) ? 'selected' : '';
-                    optGroup.innerHTML += `<option value="crd|${act.id}" ${isSelected}>${act.name} (${act.currency} ${act.value.toFixed(2)})</option>`;
-                });
-                methodSelect.appendChild(optGroup);
-            }
+
+            fillAccountDropdown(document.getElementById('txMethod'));
+            fillAccountDropdown(document.getElementById('txToMethod'));
         }
 
         function onDateChange() {
@@ -623,7 +648,6 @@
             }
         }
 
-        // 新增：渲染主畫面捷徑按鈕
         function renderShortcuts() {
             const container = document.getElementById('shortcutsContainer');
             if (settings.shortcuts.length === 0) {
@@ -640,18 +664,17 @@
             });
         }
 
-        // 新增：執行捷徑記帳
         function executeShortcut(idx) {
             const sc = settings.shortcuts[idx];
             const date = document.getElementById('txDate').value || getTodayDateString();
             
-            if(!sc.methodRaw) return alert('此捷徑未設定付款方式，請去設定補全！');
+            if(!sc.methodRaw) return alert('此捷徑未設定付款方式！');
             
             const [accType, accId] = sc.methodRaw.split('|');
             let accountList = accType === 'ast' ? settings.assets : settings.credits;
             let account = accountList.find(a => a.id === accId);
 
-            if(!account) return alert('捷徑綁定嘅戶口已失效，請去設定重新選擇！');
+            if(!account) return alert('捷徑綁定嘅戶口已失效！');
             if(sc.amount <= 0) return alert('捷徑金額必須大於 0！');
 
             if (sc.type === 'income') { account.value += sc.amount; } 
@@ -665,10 +688,7 @@
             });
             localStorage.setItem('v6_txs', JSON.stringify(transactions));
             
-            // 震動回饋 (手機版)
             if(navigator.vibrate) navigator.vibrate(50);
-            
-            // 彈出小提示
             alert(`✅ 已快速記帳：${sc.name} ($${sc.amount})`);
             updateAllViews();
         }
@@ -701,15 +721,28 @@
                 tbody.innerHTML = '<tr><td colspan="5" class="text-center p-4 text-gray-400 text-xs">當日無收支紀錄</td></tr>';
             } else {
                 dayTxs.forEach(t => {
-                    const isInc = t.type === 'income';
-                    tbody.innerHTML += `
-                        <tr class="border-b border-gray-100 hover:bg-gray-50">
-                            <td class="p-2 font-bold ${isInc?'text-green-600':'text-red-600'}">${isInc?'收款':'付款'}</td>
-                            <td class="p-2">${t.category}</td>
-                            <td class="p-2 text-gray-500">${t.desc||'-'} <br><span class="text-[10px] text-gray-400">[${t.methodName}]</span></td>
-                            <td class="p-2 text-right font-semibold ${isInc?'text-green-600':'text-red-600'}">${isInc?'':'-'}${t.amount.toFixed(2)}</td>
-                            <td class="p-2 text-center"><button onclick="deleteTransaction('${t.id}')" class="text-xs text-red-500 hover:underline">刪除</button></td>
-                        </tr>`;
+                    if (t.type === 'transfer') {
+                        // 轉帳項目渲染
+                        tbody.innerHTML += `
+                            <tr class="border-b border-indigo-50 bg-indigo-50/20 hover:bg-indigo-50/40">
+                                <td class="p-2 font-bold text-indigo-600">🔄 轉帳</td>
+                                <td class="p-2 text-indigo-700 font-medium">資金轉移</td>
+                                <td class="p-2 text-gray-600">${t.desc||'-'}<br><span class="text-[10px] text-gray-400 font-semibold">${t.methodName} ➔ ${t.toMethodName}</span></td>
+                                <td class="p-2 text-right font-bold text-indigo-600">$${t.amount.toFixed(2)}</td>
+                                <td class="p-2 text-center"><button onclick="deleteTransaction('${t.id}')" class="text-xs text-red-500 hover:underline">刪除</button></td>
+                            </tr>`;
+                    } else {
+                        // 一般收支項目渲染
+                        const isInc = t.type === 'income';
+                        tbody.innerHTML += `
+                            <tr class="border-b border-gray-100 hover:bg-gray-50">
+                                <td class="p-2 font-bold ${isInc?'text-green-600':'text-red-600'}">${isInc?'收款':'付款'}</td>
+                                <td class="p-2">${t.category}</td>
+                                <td class="p-2 text-gray-500">${t.desc||'-'} <br><span class="text-[10px] text-gray-400">[${t.methodName}]</span></td>
+                                <td class="p-2 text-right font-semibold ${isInc?'text-green-600':'text-red-600'}">${isInc?'':'-'}${t.amount.toFixed(2)}</td>
+                                <td class="p-2 text-center"><button onclick="deleteTransaction('${t.id}')" class="text-xs text-red-500 hover:underline">刪除</button></td>
+                            </tr>`;
+                    }
                 });
             }
 
@@ -724,30 +757,58 @@
             const date = document.getElementById('txDate').value;
             const type = document.querySelector('input[name="txType"]:checked').value;
             const amount = parseFloat(document.getElementById('txAmount').value) || 0;
-            const category = document.getElementById('txCategory').value;
             const desc = document.getElementById('txDesc').value;
-            
             const methodRaw = document.getElementById('txMethod').value;
-            if(!methodRaw) return alert('請先設定戶口！');
-            
-            const [accType, accId] = methodRaw.split('|');
-            let accountList = accType === 'ast' ? settings.assets : settings.credits;
-            let account = accountList.find(a => a.id === accId);
 
             if(amount <= 0) return alert('請輸入有效金額！');
-            if(!account) return alert('找不到對應戶口！');
+            if(!methodRaw) return alert('請先設定戶口！');
 
-            if (type === 'income') { account.value += amount; } 
-            else { account.value -= amount; }
-            saveSettings();
+            if (type === 'transfer') {
+                // 處理轉帳邏輯
+                const toMethodRaw = document.getElementById('txToMethod').value;
+                if(!toMethodRaw) return alert('請選擇目標存入戶口！');
+                if(methodRaw === toMethodRaw) return alert('來源戶口同目標戶口唔可以相同！');
 
-            transactions.push({
-                id: 'tx_' + Date.now(),
-                date, type, amount, category, desc,
-                methodRaw, methodName: account.name
-            });
+                const [fType, fId] = methodRaw.split('|');
+                const [tType, tId] = toMethodRaw.split('|');
+
+                let fromAccount = (fType === 'ast' ? settings.assets : settings.credits).find(a => a.id === fId);
+                let toAccount = (tType === 'ast' ? settings.assets : settings.credits).find(a => a.id === tId);
+
+                if(!fromAccount || !toAccount) return alert('戶口資料讀取出錯！');
+
+                // 來源扣錢，目標加錢 (如果目標係信用卡，加錢就等於還左卡數/回復額度)
+                fromAccount.value -= amount;
+                toAccount.value += amount;
+                saveSettings();
+
+                transactions.push({
+                    id: 'tx_' + Date.now(),
+                    date, type, amount, category: '資金轉移', desc: desc || '轉帳內部移轉',
+                    methodRaw, methodName: fromAccount.name,
+                    toMethodRaw, toMethodName: toAccount.name
+                });
+            } else {
+                // 處理一般收支
+                const category = document.getElementById('txCategory').value;
+                const [accType, accId] = methodRaw.split('|');
+                let accountList = accType === 'ast' ? settings.assets : settings.credits;
+                let account = accountList.find(a => a.id === accId);
+
+                if(!account) return alert('找不到對應戶口！');
+
+                if (type === 'income') { account.value += amount; } 
+                else { account.value -= amount; }
+                saveSettings();
+
+                transactions.push({
+                    id: 'tx_' + Date.now(),
+                    date, type, amount, category, desc,
+                    methodRaw, methodName: account.name
+                });
+            }
+
             localStorage.setItem('v6_txs', JSON.stringify(transactions));
-            
             document.getElementById('txAmount').value = '';
             document.getElementById('txDesc').value = '';
             updateAllViews();
@@ -757,14 +818,26 @@
             if(confirm('確定要刪除？(系統會自動退回戶口金額)')) {
                 const tx = transactions.find(t => t.id === id);
                 if (tx) {
-                    const [accType, accId] = tx.methodRaw.split('|');
-                    let accountList = accType === 'ast' ? settings.assets : settings.credits;
-                    let account = accountList.find(a => a.id === accId);
-                    if (account) {
-                        if (tx.type === 'income') account.value -= tx.amount;
-                        else account.value += tx.amount;
-                        saveSettings();
+                    if (tx.type === 'transfer') {
+                        // 轉帳刪除還原
+                        const [fType, fId] = tx.methodRaw.split('|');
+                        const [tType, tId] = tx.toMethodRaw.split('|');
+                        let fromAccount = (fType === 'ast' ? settings.assets : settings.credits).find(a => a.id === fId);
+                        let toAccount = (tType === 'ast' ? settings.assets : settings.credits).find(a => a.id === tId);
+
+                        if (fromAccount) fromAccount.value += tx.amount; // 來源加返錢
+                        if (toAccount) toAccount.value -= tx.amount;   // 目標扣返錢
+                    } else {
+                        // 一般收支刪除還原
+                        const [accType, accId] = tx.methodRaw.split('|');
+                        let accountList = accType === 'ast' ? settings.assets : settings.credits;
+                        let account = accountList.find(a => a.id === accId);
+                        if (account) {
+                            if (tx.type === 'income') account.value -= tx.amount;
+                            else account.value += tx.amount;
+                        }
                     }
+                    saveSettings();
                 }
                 transactions = transactions.filter(t => t.id !== id);
                 localStorage.setItem('v6_txs', JSON.stringify(transactions));
