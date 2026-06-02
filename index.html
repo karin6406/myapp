@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>個人記帳與預算管理系統 Pro Max V13</title>
+    <title>個人記帳與預算管理系統 Pro Max V14</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 text-gray-800 min-h-screen p-4 md:p-8">
@@ -23,7 +23,7 @@
                 </div>
             </div>
             <div class="text-center md:text-right">
-                <h1 class="text-xl font-bold text-indigo-800">📊 記帳與預算系統 V13</h1>
+                <h1 class="text-xl font-bold text-indigo-800">📊 記帳與預算系統 V14</h1>
             </div>
         </header>
 
@@ -45,7 +45,21 @@
                 <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
                     <h2 class="text-lg font-bold mb-4 text-gray-700">✍️ 每日記帳</h2>
                     
-                    <div class="bg-indigo-50 p-4 rounded-lg mb-4 space-y-3">
+                    <!-- 📁 Folder 分頁效果 Tab 切換區 (Image_7 綠色圈優化) -->
+                    <div class="flex bg-gray-100 p-1 rounded-xl mb-4 border border-gray-200">
+                        <button type="button" id="tab-expense" onclick="switchTxType('expense')" class="flex-1 py-2 text-center text-sm font-bold rounded-lg transition-all duration-200 bg-white text-indigo-700 shadow-sm">
+                            💸 付款 (支出)
+                        </button>
+                        <button type="button" id="tab-income" onclick="switchTxType('income')" class="flex-1 py-2 text-center text-sm font-bold rounded-lg transition-all duration-200 text-gray-500 hover:text-gray-700">
+                            💰 收款 (收入)
+                        </button>
+                        <button type="button" id="tab-transfer" onclick="switchTxType('transfer')" class="flex-1 py-2 text-center text-sm font-bold rounded-lg transition-all duration-200 text-gray-500 hover:text-gray-700">
+                            🔄 戶口轉帳
+                        </button>
+                    </div>
+
+                    <!-- 預算進度條 -->
+                    <div id="budgetProgressContainer" class="bg-indigo-50 p-4 rounded-lg mb-4 space-y-3">
                         <div class="flex justify-between items-center">
                             <span class="text-sm font-bold text-indigo-900">預算項目：</span>
                             <select id="dayTypeSelect" class="p-1 border rounded bg-white text-sm" onchange="updateDailyBudgetView()">
@@ -64,63 +78,53 @@
                         </div>
                     </div>
 
-                    <form id="transactionForm" onsubmit="addTransaction(event)" class="space-y-3 text-sm">
+                    <form id="transactionForm" onsubmit="addTransaction(event)" class="space-y-4 text-sm">
+                        <!-- 隱藏的收支類型數據，用作 Form 提交 -->
+                        <input type="hidden" id="currentTxType" value="expense">
+
                         <div>
-                            <label class="block font-medium mb-1">選擇日期</label>
-                            <input type="date" id="txDate" class="w-full p-2 border rounded focus:ring-2 focus:ring-indigo-400 outline-none" required onchange="onDateChange()">
+                            <label class="block font-semibold text-gray-700 mb-1">選擇日期</label>
+                            <input type="date" id="txDate" class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-indigo-400 outline-none bg-gray-50" required onchange="onDateChange()">
                         </div>
+
                         <div>
-                            <label class="block font-medium mb-1">收支類型</label>
-                            <div class="flex flex-wrap gap-3">
-                                <label class="flex items-center gap-1 cursor-pointer">
-                                    <input type="radio" name="txType" value="expense" checked onchange="toggleTxTypeView()"> 付款 (支出)
-                                </label>
-                                <label class="flex items-center gap-1 cursor-pointer">
-                                    <input type="radio" name="txType" value="income" onchange="toggleTxTypeView()"> 收款 (收入)
-                                </label>
-                                <label class="flex items-center gap-1 cursor-pointer text-indigo-600 font-semibold">
-                                    <input type="radio" name="txType" value="transfer" onchange="toggleTxTypeView()"> 🔄 戶口轉帳
-                                </label>
-                            </div>
+                            <label class="block font-semibold text-gray-700 mb-1">金額</label>
+                            <input type="number" id="txAmount" step="0.01" class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-indigo-400 outline-none text-base font-medium" placeholder="0.00" required>
                         </div>
                         
-                        <!-- 是否計入預算 (只在支出顯示) -->
-                        <div id="includeBudgetContainer" class="bg-gray-50 p-2 rounded border border-gray-200">
-                            <label class="flex items-center gap-2 cursor-pointer text-gray-700 font-medium">
+                        <!-- 種類欄 (轉帳時會隱藏) -->
+                        <div id="categorySelectContainer">
+                            <label class="block font-semibold text-gray-700 mb-1">種類</label>
+                            <select id="txCategory" class="w-full p-2.5 border rounded-lg bg-white focus:ring-2 focus:ring-indigo-400 outline-none"></select>
+                        </div>
+                        
+                        <!-- 來源戶口 / 付款方式 (紫色圈：調上) -->
+                        <div>
+                            <label id="fromAccountLabel" class="block font-semibold text-gray-700 mb-1">付款方式 (自動連動)</label>
+                            <select id="txMethod" class="w-full p-2.5 border rounded-lg bg-white focus:ring-2 focus:ring-indigo-400 outline-none"></select>
+                        </div>
+
+                        <!-- 目標戶口 (只有轉帳時會出現) -->
+                        <div id="toAccountSelectContainer" class="hidden">
+                            <label class="block font-semibold text-indigo-600 mb-1">🎯 目標戶口 (存入/找數)</label>
+                            <select id="txToMethod" class="w-full p-2.5 border rounded-lg bg-white focus:ring-2 focus:ring-indigo-400 outline-none border-indigo-300"></select>
+                        </div>
+
+                        <!-- 用途 / 備註 (紫色圈：調下) -->
+                        <div>
+                            <label class="block font-semibold text-gray-700 mb-1">用途 / 備註 (選填)</label>
+                            <input type="text" id="txDesc" class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-indigo-400 outline-none" placeholder="輸入具體用途或轉帳備註">
+                        </div>
+                        
+                        <!-- 是否計入預算 (橙色線：搬移到最底，只在支出顯示) -->
+                        <div id="includeBudgetContainer" class="bg-gray-50 p-2.5 rounded-lg border border-gray-200">
+                            <label class="flex items-center gap-2 cursor-pointer text-gray-700 font-semibold">
                                 <input type="checkbox" id="txIncludeBudget" checked class="w-4 h-4 text-indigo-600 focus:ring-indigo-500 rounded">
                                 將此筆支出計入每日預算
                             </label>
                         </div>
 
-                        <div>
-                            <label class="block font-medium mb-1">金額</label>
-                            <input type="number" id="txAmount" step="0.01" class="w-full p-2 border rounded focus:ring-2 focus:ring-indigo-400 outline-none" placeholder="0.00" required>
-                        </div>
-                        
-                        <!-- 種類欄 (轉帳時會隱藏) -->
-                        <div id="categorySelectContainer">
-                            <label class="block font-medium mb-1">種類</label>
-                            <select id="txCategory" class="w-full p-2 border rounded bg-white focus:ring-2 focus:ring-indigo-400 outline-none"></select>
-                        </div>
-                        
-                        <div>
-                            <label class="block font-medium mb-1">用途 / 備註 (選填)</label>
-                            <input type="text" id="txDesc" class="w-full p-2 border rounded focus:ring-2 focus:ring-indigo-400 outline-none" placeholder="輸入具體用途或轉帳備註">
-                        </div>
-                        
-                        <!-- 來源戶口 -->
-                        <div>
-                            <label id="fromAccountLabel" class="block font-medium mb-1">付款方式 (自動連動)</label>
-                            <select id="txMethod" class="w-full p-2 border rounded bg-white focus:ring-2 focus:ring-indigo-400 outline-none"></select>
-                        </div>
-
-                        <!-- 目標戶口 (只有轉帳時會出現) -->
-                        <div id="toAccountSelectContainer" class="hidden">
-                            <label class="block font-medium mb-1 text-indigo-600 font-semibold">🎯 目標戶口 (存入/找數)</label>
-                            <select id="txToMethod" class="w-full p-2 border rounded bg-white focus:ring-2 focus:ring-indigo-400 outline-none border-indigo-300"></select>
-                        </div>
-
-                        <button type="submit" class="w-full bg-indigo-600 text-white p-2.5 rounded-lg font-bold hover:bg-indigo-700 transition shadow">新增紀錄</button>
+                        <button type="submit" class="w-full bg-indigo-600 text-white p-3 rounded-xl font-bold hover:bg-indigo-700 transition shadow-md text-base mt-2">新增紀錄</button>
                     </form>
 
                     <!-- 當日消費明細 (收合式) -->
@@ -249,7 +253,7 @@
                         <h4 class="text-base font-bold text-yellow-700">⚡ 快速記帳設定</h4>
                         <button onclick="addNewShortcut()" class="bg-yellow-100 text-yellow-700 px-2.5 py-1 rounded text-xs font-bold hover:bg-yellow-200 transition">+ 新增捷徑</button>
                     </div>
-                    <p class="text-xs text-gray-500 mb-2">喺度預先設定好常用嘅消費。依家喺主畫面撳「快速記帳」會**直接寫入紀錄**。</p>
+                    <p class="text-xs text-gray-500 mb-2">喺度預先設定好常用嘅消費。依家喺主畫面撳「快速記帳」會直接寫入紀錄。</p>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs min-w-[750px]">
                             <thead>
@@ -299,7 +303,7 @@
                                 <tr class="text-green-800 font-semibold border-b border-green-200">
                                     <th class="p-1">戶口名稱</th>
                                     <th class="p-1 w-20">貨幣</th>
-                                    <th class="p-1 w-24">數值 (綠)</th>
+                                    <th class="p-1 w-24">數值 (慢)</th>
                                     <th class="p-1">備注</th>
                                     <th class="p-1 text-center w-12">操作</th>
                                 </tr>
@@ -363,11 +367,6 @@
 
         if (!settings.shortcuts) settings.shortcuts = [];
 
-        // 結構遷移：確保舊數據有 includeInBudget 屬性
-        settings.shortcuts.forEach(sc => {
-            if (sc.includeInBudget === undefined) sc.includeInBudget = true;
-        });
-
         window.onload = function() {
             document.getElementById('holidayBudgetInput').value = settings.holidayBudget;
             document.getElementById('weekdayBudgetInput').value = settings.weekdayBudget;
@@ -398,7 +397,7 @@
             renderSettingsDOM(); 
             syncFormDropdowns();  
             updateAllViews();
-            toggleTxTypeView(); 
+            refreshTxTypeUI(); 
             
             setInterval(function() {
                 const now = new Date();
@@ -440,28 +439,55 @@
             updateAllViews();
         }
 
-        function toggleTxTypeView() {
-            const type = document.querySelector('input[name="txType"]:checked').value;
+        // 🌟 新增：分頁 Folder 切換邏輯 (Image_7 綠圈效果)
+        function switchTxType(type) {
+            document.getElementById('currentTxType').value = type;
+            refreshTxTypeUI();
+        }
+
+        function refreshTxTypeUI() {
+            const type = document.getElementById('currentTxType').value;
+            
+            // 處理 Tab 的外觀切換 (Folder 效果)
+            const tabs = {
+                expense: document.getElementById('tab-expense'),
+                income: document.getElementById('tab-income'),
+                transfer: document.getElementById('tab-transfer')
+            };
+
+            Object.keys(tabs).forEach(key => {
+                if(key === type) {
+                    tabs[key].className = "flex-1 py-2 text-center text-sm font-bold rounded-lg transition-all duration-200 bg-white text-indigo-700 shadow-sm border border-gray-200/50";
+                } else {
+                    tabs[key].className = "flex-1 py-2 text-center text-sm font-bold rounded-lg transition-all duration-200 text-gray-500 hover:text-gray-700 hover:bg-gray-200/50";
+                }
+            });
+
+            // 處理表單欄位聯動
             const catContainer = document.getElementById('categorySelectContainer');
             const toAccContainer = document.getElementById('toAccountSelectContainer');
             const fromLabel = document.getElementById('fromAccountLabel');
             const includeBudgetContainer = document.getElementById('includeBudgetContainer');
+            const budgetProgressContainer = document.getElementById('budgetProgressContainer');
 
             if (type === 'transfer') {
                 catContainer.classList.add('hidden');
                 toAccContainer.classList.remove('hidden');
                 includeBudgetContainer.classList.add('hidden');
+                budgetProgressContainer.classList.add('hidden'); // 轉帳時不用看預算
                 fromLabel.innerText = "🛫 來源戶口 (扣除)";
             } else if (type === 'income') {
                 catContainer.classList.remove('hidden');
                 toAccContainer.classList.add('hidden');
                 includeBudgetContainer.classList.add('hidden');
-                fromLabel.innerText = "存入方式 (自動連動)";
+                budgetProgressContainer.classList.add('hidden'); // 收入時不用看預算進度
+                fromLabel.innerText = "💰 存入方式 (自動連動)";
             } else {
                 catContainer.classList.remove('hidden');
                 toAccContainer.classList.add('hidden');
                 includeBudgetContainer.classList.remove('hidden');
-                fromLabel.innerText = "付款方式 (自動連動)";
+                budgetProgressContainer.classList.remove('hidden'); // 支出顯示預算
+                fromLabel.innerText = "💳 付款方式 (自動連動)";
             }
         }
 
@@ -499,7 +525,6 @@
             return html;
         }
 
-        // 🌟 快速記帳按鈕：更改為撳完直接執行扣數記帳
         function renderShortcutsGrid() {
             const container = document.getElementById('shortcutsContainer');
             container.innerHTML = '';
@@ -655,10 +680,9 @@
             saveSettings(); renderSettingsDOM();
         }
 
-        // 🌟 執行捷徑直接記帳功能
         function executeShortcut(idx, btnElement) {
             const sc = settings.shortcuts[idx];
-            const date = document.getElementById('txDate').value; // 跟隨主畫面當前選取日期
+            const date = document.getElementById('txDate').value;
 
             if(!sc.methodRaw) { 
                 alert(`請先去設定中為捷徑「${sc.name}」選擇付款方式！`); 
@@ -677,13 +701,12 @@
                 type: sc.type,
                 amount: sc.amount,
                 category: sc.category,
-                desc: sc.desc || sc.name, // 如果沒寫備註就用捷徑名代替
+                desc: sc.desc || sc.name,
                 methodRaw: sc.methodRaw,
                 methodName: fromAcc.data.name,
                 includeInBudget: sc.type === 'expense' ? sc.includeInBudget : false
             };
 
-            // 扣減或增加戶口餘額
             if(sc.type === 'expense') {
                 if(fromAcc.type === 'ast') fromAcc.data.value -= sc.amount;
                 else fromAcc.data.value += sc.amount; 
@@ -696,7 +719,6 @@
             localStorage.setItem('v6_txs', JSON.stringify(transactions));
             saveSettings(); 
 
-            // 一鍵成功動畫反饋
             const originalText = btnElement.innerHTML;
             btnElement.innerHTML = '記帳成功! ✅';
             btnElement.disabled = true;
@@ -705,7 +727,6 @@
                 btnElement.disabled = false;
             }, 800);
 
-            // 更新所有畫面數據
             updateAllViews();
         }
 
@@ -727,7 +748,7 @@
         function addTransaction(e) {
             e.preventDefault();
             const date = document.getElementById('txDate').value;
-            const type = document.querySelector('input[name="txType"]:checked').value;
+            const type = document.getElementById('currentTxType').value; // 改為讀取隱藏欄位
             const amount = parseFloat(document.getElementById('txAmount').value);
             const category = document.getElementById('txCategory').value;
             const desc = document.getElementById('txDesc').value;
