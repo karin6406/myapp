@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>個人記帳與預算管理系統 Pro Max V10</title>
+    <title>個人記帳與預算管理系統 Pro Max V11</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 text-gray-800 min-h-screen p-4 md:p-8">
@@ -23,7 +23,7 @@
                 </div>
             </div>
             <div class="text-center md:text-right">
-                <h1 class="text-xl font-bold text-indigo-800">📊 記帳與預算系統 V10</h1>
+                <h1 class="text-xl font-bold text-indigo-800">📊 記帳與預算系統 V11</h1>
             </div>
         </header>
 
@@ -166,7 +166,7 @@
                             <span id="monthIncomeText" class="font-bold text-green-600 text-sm sm:text-base">0</span>
                         </div>
                         <div>
-                            <span class="block text-gray-500 text-[11px] sm:text-xs">本月總支出</span>
+                            <span class="block text-gray-500 text-[11px] sm:text-xs">本月總支出 (計預算)</span>
                             <span id="monthExpenseText" class="font-bold text-red-600 text-sm sm:text-base">0</span>
                         </div>
                         <div>
@@ -392,7 +392,7 @@
             renderSettingsDOM(); 
             syncFormDropdowns();  
             updateAllViews();
-            toggleTxTypeView(); // 初始化收支類型介面
+            toggleTxTypeView(); 
             
             setInterval(function() {
                 const now = new Date();
@@ -434,7 +434,6 @@
             updateAllViews();
         }
 
-        // 動態切換表單檢視
         function toggleTxTypeView() {
             const type = document.querySelector('input[name="txType"]:checked').value;
             const catContainer = document.getElementById('categorySelectContainer');
@@ -624,23 +623,6 @@
             if(sc.methodRaw) document.getElementById('txMethod').value = sc.methodRaw;
         }
 
-        function renderShortcutsGrid() {
-            const container = document.getElementById('shortcutsContainer');
-            container.innerHTML = '';
-            if(settings.shortcuts.length === 0) {
-                container.innerHTML = '<span class="text-xs text-gray-400">未設定捷徑</span>';
-                return;
-            }
-            settings.shortcuts.forEach((sc, idx) => {
-                let bg = sc.type === 'expense' ? 'bg-orange-100 text-orange-800 border-orange-200 hover:bg-orange-200' : 'bg-green-100 text-green-800 border-green-200 hover:bg-green-200';
-                container.innerHTML += `
-                    <button onclick="applyShortcut(${idx})" class="px-3 py-1.5 rounded-lg border shadow-sm text-sm font-semibold transition ${bg}">
-                        ${sc.name}
-                    </button>
-                `;
-            });
-        }
-
         function findAccount(rawVal) {
             if(!rawVal) return null;
             const [type, id] = rawVal.split('|');
@@ -659,7 +641,6 @@
             const methodRaw = document.getElementById('txMethod').value;
             const toMethodRaw = document.getElementById('txToMethod').value;
             
-            // 是否計入預算標記
             const includeInBudget = document.getElementById('txIncludeBudget').checked;
 
             if(!methodRaw) { alert("請先設定並選擇付款/存入方式！"); return; }
@@ -682,24 +663,21 @@
                 
                 txObj.toMethodRaw = toMethodRaw;
                 txObj.toMethodName = toAcc.data.name;
-                // 轉帳強行不計入預算
                 txObj.includeInBudget = false;
 
-                // 扣錢 (From)
                 if(fromAcc.type === 'ast') fromAcc.data.value -= amount;
-                else fromAcc.data.value += amount; // 信用卡欠款增加
+                else fromAcc.data.value += amount; 
 
-                // 加錢 (To)
                 if(toAcc.type === 'ast') toAcc.data.value += amount;
-                else toAcc.data.value -= amount; // 信用卡找數 (欠款減少)
+                else toAcc.data.value -= amount; 
                 
             } else {
                 if(type === 'expense') {
                     if(fromAcc.type === 'ast') fromAcc.data.value -= amount;
-                    else fromAcc.data.value += amount; // 信用卡欠款增加
-                } else { // income
+                    else fromAcc.data.value += amount; 
+                } else { 
                     if(fromAcc.type === 'ast') fromAcc.data.value += amount;
-                    else fromAcc.data.value -= amount; // 信用卡退款/入數
+                    else fromAcc.data.value -= amount; 
                 }
             }
 
@@ -721,12 +699,10 @@
                 
                 if (tx.type === 'transfer') {
                     const toAcc = findAccount(tx.toMethodRaw);
-                    // 還原扣錢 (From)
                     if(fromAcc && fromAcc.data) {
                         if(fromAcc.type === 'ast') fromAcc.data.value += tx.amount;
                         else fromAcc.data.value -= tx.amount;
                     }
-                    // 還原加錢 (To)
                     if(toAcc && toAcc.data) {
                         if(toAcc.type === 'ast') toAcc.data.value -= tx.amount;
                         else toAcc.data.value += tx.amount;
@@ -778,7 +754,6 @@
             let dayExpenses = 0;
             let dayTxs = transactions.filter(t => t.date === dateStr);
             dayTxs.forEach(t => {
-                // 只有支出，並且 includeInBudget !== false (相容舊資料) 才計入進度條
                 if(t.type === 'expense' && t.includeInBudget !== false) {
                     dayExpenses += t.amount;
                 }
@@ -872,8 +847,7 @@
                 grid.innerHTML += `<div class="p-2 bg-gray-50 rounded min-h-[60px]"></div>`;
             }
 
-            // 整合信用卡到期日及結算日資訊
-            let crdEvents = {}; // { day: [ {text, color} ] }
+            let crdEvents = {}; 
             settings.credits.forEach(crd => {
                 if(crd.dueDate) {
                     if(!crdEvents[crd.dueDate]) crdEvents[crd.dueDate] = [];
@@ -888,11 +862,21 @@
             for(let day = 1; day <= daysInMonth; day++) {
                 const dStr = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
                 
+                // 判斷當日預算類型 (平日/假日)
+                let bType = dateBudgetTypes[dStr];
+                if (!bType) {
+                    const dayOfWeek = new Date(year, month, day).getDay();
+                    bType = (dayOfWeek === 0 || dayOfWeek === 6) ? 'holiday' : 'weekday';
+                }
+                
+                let badgeHtml = bType === 'holiday'
+                    ? `<span class="text-[9px] bg-orange-100 text-orange-600 px-1 rounded ml-1 font-normal">假日</span>`
+                    : `<span class="text-[9px] bg-blue-100 text-blue-600 px-1 rounded ml-1 font-normal">平日</span>`;
+
                 let dayExp = 0; let dayInc = 0;
                 transactions.forEach(t => {
                     if(t.date === dStr) {
                         if(t.type === 'expense') {
-                            // 月曆支出只計入有計預算嘅部分，以反映實際消費
                             if(t.includeInBudget !== false) {
                                 dayExp += t.amount;
                                 monthExp += t.amount;
@@ -904,7 +888,8 @@
                     }
                 });
 
-                let content = `<div class="font-bold text-gray-600">${day}</div>`;
+                // 加入預算標籤喺日期旁邊
+                let content = `<div class="font-bold text-gray-600 flex items-center justify-center">${day} ${badgeHtml}</div>`;
                 
                 if(crdEvents[day]) {
                     crdEvents[day].forEach(ev => {
@@ -937,7 +922,6 @@
             document.getElementById('txDate').value = dStr;
             onDateChange();
             
-            // 手機版自動捲動去記帳表單
             if (window.innerWidth < 1024) {
                 document.getElementById('transactionForm').scrollIntoView({ behavior: 'smooth' });
             }
