@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>個人記帳與預算管理系統 Pro Max V12</title>
+    <title>個人記帳與預算管理系統 Pro Max V13</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 text-gray-800 min-h-screen p-4 md:p-8">
@@ -23,7 +23,7 @@
                 </div>
             </div>
             <div class="text-center md:text-right">
-                <h1 class="text-xl font-bold text-indigo-800">📊 記帳與預算系統 V12</h1>
+                <h1 class="text-xl font-bold text-indigo-800">📊 記帳與預算系統 V13</h1>
             </div>
         </header>
 
@@ -34,7 +34,8 @@
                 
                 <!-- ⚡ 快速記帳捷徑區 -->
                 <div class="bg-white p-5 rounded-xl shadow-md border border-yellow-200 bg-gradient-to-br from-yellow-50 to-white">
-                    <h2 class="text-base font-bold mb-3 text-yellow-700">⚡ 快速記帳</h2>
+                    <h2 class="text-base font-bold mb-1 text-yellow-700">⚡ 快速記帳</h2>
+                    <p class="text-[11px] text-gray-500 mb-3">💡 撳完即刻直接記帳，毋須再撳其他按鍵</p>
                     <div id="shortcutsContainer" class="flex flex-wrap gap-2">
                         <!-- 捷徑按鈕會喺度生成 -->
                     </div>
@@ -202,7 +203,7 @@
 
     <!-- 預算、種類及捷徑設定 Modal -->
     <div id="settingsModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden p-4">
-        <div class="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto flex flex-col">
+        <div class="bg-white rounded-xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto flex flex-col">
             <div class="p-4 border-b flex justify-between items-center bg-gray-50 sticky top-0 z-10">
                 <h3 class="text-xl font-bold text-gray-800">⚙️ 預算、種類及捷徑設定</h3>
                 <button onclick="closeModal('settingsModal')" class="text-gray-400 hover:text-gray-600 font-bold text-2xl px-2">&times;</button>
@@ -248,9 +249,9 @@
                         <h4 class="text-base font-bold text-yellow-700">⚡ 快速記帳設定</h4>
                         <button onclick="addNewShortcut()" class="bg-yellow-100 text-yellow-700 px-2.5 py-1 rounded text-xs font-bold hover:bg-yellow-200 transition">+ 新增捷徑</button>
                     </div>
-                    <p class="text-xs text-gray-500 mb-2">喺度預先設定好常用嘅消費，出面主畫面就會有「一鍵記帳」按鈕。</p>
+                    <p class="text-xs text-gray-500 mb-2">喺度預先設定好常用嘅消費。依家喺主畫面撳「快速記帳」會**直接寫入紀錄**。</p>
                     <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs min-w-[700px]">
+                        <table class="w-full text-left text-xs min-w-[750px]">
                             <thead>
                                 <tr class="text-yellow-800 font-semibold border-b border-yellow-200">
                                     <th class="p-1 w-24">捷徑名稱</th>
@@ -259,6 +260,7 @@
                                     <th class="p-1 w-24">種類</th>
                                     <th class="p-1">預設用途</th>
                                     <th class="p-1 w-32">付款方式</th>
+                                    <th class="p-1 text-center w-24">計入當日預算</th>
                                     <th class="p-1 text-center w-12">操作</th>
                                 </tr>
                             </thead>
@@ -341,7 +343,6 @@
 
     <script>
         const CURRENCIES = ["HKD", "TWD", "KRW", "JPY", "GBP", "USD"];
-        const DAYS_IN_MONTH = Array.from({length: 31}, (_, i) => i + 1);
 
         let transactions = JSON.parse(localStorage.getItem('v6_txs')) || [];
         let dateBudgetTypes = JSON.parse(localStorage.getItem('v6_date_types')) || {}; 
@@ -361,6 +362,11 @@
         };
 
         if (!settings.shortcuts) settings.shortcuts = [];
+
+        // 結構遷移：確保舊數據有 includeInBudget 屬性
+        settings.shortcuts.forEach(sc => {
+            if (sc.includeInBudget === undefined) sc.includeInBudget = true;
+        });
 
         window.onload = function() {
             document.getElementById('holidayBudgetInput').value = settings.holidayBudget;
@@ -493,7 +499,7 @@
             return html;
         }
 
-        // 🌟 新增返捷徑按鈕渲染函數
+        // 🌟 快速記帳按鈕：更改為撳完直接執行扣數記帳
         function renderShortcutsGrid() {
             const container = document.getElementById('shortcutsContainer');
             container.innerHTML = '';
@@ -509,9 +515,11 @@
                     ? 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100' 
                     : 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100';
                 
+                let budgetLabel = (isExpense && sc.includeInBudget === false) ? ' (不計預算)' : '';
+                
                 container.innerHTML += `
-                    <button onclick="applyShortcut(${idx})" class="px-3 py-1.5 border rounded-lg text-sm font-bold shadow-sm transition ${btnColor}">
-                        ${sc.name} ($${sc.amount})
+                    <button onclick="executeShortcut(${idx}, this)" class="px-3 py-1.5 border rounded-lg text-xs sm:text-sm font-bold shadow-sm transition ${btnColor}">
+                        ${sc.name} ($${sc.amount}${budgetLabel})
                     </button>
                 `;
             });
@@ -532,11 +540,14 @@
             const scBody = document.getElementById('shortcutsTableBody');
             scBody.innerHTML = '';
             settings.shortcuts.forEach((sc, idx) => {
+                let isChecked = sc.includeInBudget !== false ? 'checked' : '';
+                let checkboxDisabled = sc.type === 'income' ? 'disabled' : '';
+                
                 scBody.innerHTML += `
                     <tr class="border-b border-yellow-100 hover:bg-yellow-50">
                         <td class="p-1"><input type="text" value="${sc.name}" placeholder="例: 搭巴士" class="border p-1 rounded w-full text-xs" onchange="updateSet('shortcuts', ${idx}, 'name', this.value)"></td>
                         <td class="p-1">
-                            <select class="border p-1 rounded w-full text-xs" onchange="updateSet('shortcuts', ${idx}, 'type', this.value)">
+                            <select class="border p-1 rounded w-full text-xs" onchange="updateShortcutType(${idx}, this.value)">
                                 <option value="expense" ${sc.type==='expense'?'selected':''}>支出</option>
                                 <option value="income" ${sc.type==='income'?'selected':''}>收入</option>
                             </select>
@@ -553,6 +564,9 @@
                                 <option value="">請選擇</option>
                                 ${getMethodOptions(sc.methodRaw)}
                             </select>
+                        </td>
+                        <td class="p-1 text-center">
+                            <input type="checkbox" ${isChecked} ${checkboxDisabled} class="w-4 h-4 text-indigo-600 rounded" onchange="updateShortcutBudgetCheckbox(${idx}, this.checked)">
                         </td>
                         <td class="p-1 text-center"><button onclick="deleteItem('shortcuts', ${idx})" class="text-red-500 font-bold">🗑️</button></td>
                     </tr>`;
@@ -610,12 +624,26 @@
             saveSettings();
         }
 
+        function updateShortcutType(idx, val) {
+            settings.shortcuts[idx].type = val;
+            if(val === 'income') {
+                settings.shortcuts[idx].includeInBudget = false;
+            }
+            saveSettings();
+            renderSettingsDOM();
+        }
+
+        function updateShortcutBudgetCheckbox(idx, checked) {
+            settings.shortcuts[idx].includeInBudget = checked;
+            saveSettings();
+        }
+
         function addNewCategory() {
             settings.categories.push({ name: "新種類", budget: 0 });
             saveSettings(); renderSettingsDOM();
         }
         function addNewShortcut() {
-            settings.shortcuts.push({ name: "新捷徑", type: "expense", amount: 0, category: settings.categories[0]?.name || "", desc: "", methodRaw: "" });
+            settings.shortcuts.push({ name: "新捷徑", type: "expense", amount: 0, category: settings.categories[0]?.name || "", desc: "", methodRaw: "", includeInBudget: true });
             saveSettings(); renderSettingsDOM();
         }
         function addNewAssetAccount() {
@@ -627,31 +655,65 @@
             saveSettings(); renderSettingsDOM();
         }
 
+        // 🌟 執行捷徑直接記帳功能
+        function executeShortcut(idx, btnElement) {
+            const sc = settings.shortcuts[idx];
+            const date = document.getElementById('txDate').value; // 跟隨主畫面當前選取日期
+
+            if(!sc.methodRaw) { 
+                alert(`請先去設定中為捷徑「${sc.name}」選擇付款方式！`); 
+                return; 
+            }
+            
+            const fromAcc = findAccount(sc.methodRaw);
+            if(!fromAcc || !fromAcc.data) { 
+                alert("找不到該捷徑對應的戶口，請在設定中重新檢查！"); 
+                return; 
+            }
+
+            let txObj = {
+                id: 'tx_' + Date.now(),
+                date: date,
+                type: sc.type,
+                amount: sc.amount,
+                category: sc.category,
+                desc: sc.desc || sc.name, // 如果沒寫備註就用捷徑名代替
+                methodRaw: sc.methodRaw,
+                methodName: fromAcc.data.name,
+                includeInBudget: sc.type === 'expense' ? sc.includeInBudget : false
+            };
+
+            // 扣減或增加戶口餘額
+            if(sc.type === 'expense') {
+                if(fromAcc.type === 'ast') fromAcc.data.value -= sc.amount;
+                else fromAcc.data.value += sc.amount; 
+            } else { 
+                if(fromAcc.type === 'ast') fromAcc.data.value += sc.amount;
+                else fromAcc.data.value -= sc.amount; 
+            }
+
+            transactions.push(txObj);
+            localStorage.setItem('v6_txs', JSON.stringify(transactions));
+            saveSettings(); 
+
+            // 一鍵成功動畫反饋
+            const originalText = btnElement.innerHTML;
+            btnElement.innerHTML = '記帳成功! ✅';
+            btnElement.disabled = true;
+            setTimeout(() => { 
+                btnElement.innerHTML = originalText; 
+                btnElement.disabled = false;
+            }, 800);
+
+            // 更新所有畫面數據
+            updateAllViews();
+        }
+
         function deleteItem(arrName, idx) {
             if(confirm('確定刪除？')) {
                 settings[arrName].splice(idx, 1);
                 saveSettings(); renderSettingsDOM();
             }
-        }
-
-        function applyShortcut(idx) {
-            const sc = settings.shortcuts[idx];
-            if(sc.type === 'expense') {
-                document.querySelector('input[name="txType"][value="expense"]').checked = true;
-            } else {
-                document.querySelector('input[name="txType"][value="income"]').checked = true;
-            }
-            toggleTxTypeView();
-            document.getElementById('txAmount').value = sc.amount;
-            document.getElementById('txCategory').value = sc.category;
-            document.getElementById('txDesc').value = sc.desc;
-            if(sc.methodRaw) document.getElementById('txMethod').value = sc.methodRaw;
-            
-            // 加入一個簡單嘅視覺反饋
-            const btn = document.querySelectorAll('#shortcutsContainer button')[idx];
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '已選取 ✅';
-            setTimeout(() => { btn.innerHTML = originalText; }, 800);
         }
 
         function findAccount(rawVal) {
