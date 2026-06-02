@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>個人記帳與預算管理系統 Pro Max V11</title>
+    <title>個人記帳與預算管理系統 Pro Max V12</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 text-gray-800 min-h-screen p-4 md:p-8">
@@ -23,7 +23,7 @@
                 </div>
             </div>
             <div class="text-center md:text-right">
-                <h1 class="text-xl font-bold text-indigo-800">📊 記帳與預算系統 V11</h1>
+                <h1 class="text-xl font-bold text-indigo-800">📊 記帳與預算系統 V12</h1>
             </div>
         </header>
 
@@ -471,6 +471,7 @@
             });
             return html;
         }
+        
         function getMethodOptions(selectedMethod) {
             let html = '';
             if(settings.assets.length > 0) {
@@ -490,6 +491,30 @@
                 html += `</optgroup>`;
             }
             return html;
+        }
+
+        // 🌟 新增返捷徑按鈕渲染函數
+        function renderShortcutsGrid() {
+            const container = document.getElementById('shortcutsContainer');
+            container.innerHTML = '';
+            
+            if (settings.shortcuts.length === 0) {
+                container.innerHTML = '<span class="text-sm text-gray-500">仲未設定捷徑，去設定度加返幾個啦！</span>';
+                return;
+            }
+
+            settings.shortcuts.forEach((sc, idx) => {
+                let isExpense = sc.type === 'expense';
+                let btnColor = isExpense 
+                    ? 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100' 
+                    : 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100';
+                
+                container.innerHTML += `
+                    <button onclick="applyShortcut(${idx})" class="px-3 py-1.5 border rounded-lg text-sm font-bold shadow-sm transition ${btnColor}">
+                        ${sc.name} ($${sc.amount})
+                    </button>
+                `;
+            });
         }
 
         function renderSettingsDOM() {
@@ -571,7 +596,7 @@
             document.getElementById('txMethod').innerHTML = methodHtml;
             document.getElementById('txToMethod').innerHTML = methodHtml;
             
-            renderShortcutsGrid();
+            renderShortcutsGrid(); 
         }
 
         function updateSet(arrName, idx, field, val) {
@@ -621,6 +646,12 @@
             document.getElementById('txCategory').value = sc.category;
             document.getElementById('txDesc').value = sc.desc;
             if(sc.methodRaw) document.getElementById('txMethod').value = sc.methodRaw;
+            
+            // 加入一個簡單嘅視覺反饋
+            const btn = document.querySelectorAll('#shortcutsContainer button')[idx];
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '已選取 ✅';
+            setTimeout(() => { btn.innerHTML = originalText; }, 800);
         }
 
         function findAccount(rawVal) {
@@ -862,7 +893,6 @@
             for(let day = 1; day <= daysInMonth; day++) {
                 const dStr = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
                 
-                // 判斷當日預算類型 (平日/假日)
                 let bType = dateBudgetTypes[dStr];
                 if (!bType) {
                     const dayOfWeek = new Date(year, month, day).getDay();
@@ -888,7 +918,6 @@
                     }
                 });
 
-                // 加入預算標籤喺日期旁邊
                 let content = `<div class="font-bold text-gray-600 flex items-center justify-center">${day} ${badgeHtml}</div>`;
                 
                 if(crdEvents[day]) {
