@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>個人記帳與預算管理系統 Pro Max V16</title>
+    <title>個人記帳與預算管理系統 Pro Max V17</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 text-gray-800 min-h-screen p-4 md:p-8">
@@ -22,9 +22,26 @@
                 </div>
             </div>
             <div class="text-center md:text-right">
-                <h1 class="text-xl font-bold text-indigo-800">📊 記帳與預算系統 V16</h1>
+                <h1 class="text-xl font-bold text-indigo-800">📊 記帳與預算系統 V17</h1>
             </div>
         </header>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-green-200 bg-gradient-to-br from-green-50/50 to-white flex justify-between items-center">
+                <div>
+                    <span class="text-xs font-bold text-green-700 block mb-1">🟢 所有正資產戶口總和</span>
+                    <span id="totalAssetsText" class="text-2xl font-black text-green-600 tracking-wide">0.00</span>
+                </div>
+                <button onclick="toggleVisibility('assets')" id="eyeBtn-assets" class="text-xl p-2 hover:bg-green-100 rounded-full transition">👁️</button>
+            </div>
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-red-200 bg-gradient-to-br from-red-50/50 to-white flex justify-between items-center">
+                <div>
+                    <span class="text-xs font-bold text-red-700 block mb-1">🔴 所有負資產戶口總和</span>
+                    <span id="totalDebtsText" class="text-2xl font-black text-red-600 tracking-wide">0.00</span>
+                </div>
+                <button onclick="toggleVisibility('debts')" id="eyeBtn-debts" class="text-xl p-2 hover:bg-red-100 rounded-full transition">👁️</button>
+            </div>
+        </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
@@ -149,9 +166,12 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-3 gap-2 bg-gray-50 p-3 rounded-lg mb-4 text-center text-xs sm:text-sm border border-gray-100">
-                        <div>
-                            <span class="block text-gray-500 text-[10px] sm:text-xs">本月總收入</span>
+                    <div class="grid grid-cols-3 gap-2 bg-gray-50 p-3 rounded-lg mb-4 text-center text-xs sm:text-sm border border-gray-100 items-center">
+                        <div class="relative group">
+                            <span class="block text-gray-500 text-[10px] sm:text-xs">
+                                本月總收入 
+                                <button onclick="toggleVisibility('income')" id="eyeBtn-income" class="text-xs ml-0.5 inline-block align-middle">👁️</button>
+                            </span>
                             <span id="monthIncomeText" class="font-bold text-green-600">0</span>
                         </div>
                         <div>
@@ -388,6 +408,13 @@
         };
         if (!settings.shortcuts) settings.shortcuts = [];
 
+        // 👁️ 儲存隱藏狀態 (預設都顯示 false)
+        let hiddenState = JSON.parse(localStorage.getItem('v17_hidden_state')) || {
+            assets: false,
+            debts: false,
+            income: false
+        };
+
         let editState = { type: null, idx: -1 }; 
 
         // ================= 🧮 計數機系統 =================
@@ -439,6 +466,13 @@
             }
         }
         // =================================================
+
+        // 👁️ 隱藏功能切換函數
+        function toggleVisibility(field) {
+            hiddenState[field] = !hiddenState[field];
+            localStorage.setItem('v17_hidden_state', JSON.stringify(hiddenState));
+            updateAllViews();
+        }
 
         window.onload = function() {
             document.getElementById('holidayBudgetInput').value = settings.holidayBudget;
@@ -773,8 +807,6 @@
 
         function addTransaction(e) {
             e.preventDefault();
-            
-            // 提交前記住強制計一次數，確保無入錯
             autoCalculate(document.getElementById('txAmount'));
             
             const date = document.getElementById('txDate').value;
@@ -851,6 +883,20 @@
 
         function updateAllViews() {
             document.getElementById('dayTypeSelect').value = dateBudgetTypes[document.getElementById('txDate').value] || 'weekday';
+            
+            // 👁️ 更新眼仔圖示狀態
+            document.getElementById('eyeBtn-assets').innerText = hiddenState.assets ? '🙈' : '👁️';
+            document.getElementById('eyeBtn-debts').innerText = hiddenState.debts ? '🙈' : '👁️';
+            document.getElementById('eyeBtn-income').innerText = hiddenState.income ? '🙈' : '👁️';
+
+            // 🟢 計算正資產總和
+            let totalAssets = settings.assets.reduce((sum, ast) => sum + (ast.value || 0), 0);
+            document.getElementById('totalAssetsText').innerText = hiddenState.assets ? '****' : totalAssets.toFixed(2);
+
+            // 🔴 計算負資產總和
+            let totalDebts = settings.credits.reduce((sum, crd) => sum + (crd.value || 0), 0);
+            document.getElementById('totalDebtsText').innerText = hiddenState.debts ? '****' : totalDebts.toFixed(2);
+
             updateDailyBudgetView(); updateDailyDetail(); renderCalendar(); renderCategoryChart();
         }
 
@@ -933,8 +979,10 @@
                 grid.innerHTML += `<div class="p-0.5 rounded min-h-[50px] cursor-pointer hover:bg-gray-50 flex flex-col items-center ${isToday}" onclick="jumpToDate('${dStr}')">${content}</div>`;
             }
 
-            document.getElementById('monthIncomeText').innerText = mInc.toFixed(1);
+            // 👁️ 本月總收入受隱藏狀態影響
+            document.getElementById('monthIncomeText').innerText = hiddenState.income ? '****' : mInc.toFixed(1);
             document.getElementById('monthExpenseText').innerText = mExp.toFixed(1);
+            
             let profit = mInc - mExp;
             let pText = document.getElementById('monthProfitText');
             pText.innerText = profit.toFixed(1);
